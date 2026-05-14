@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PS5 BROWSER PROBE // v1.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Major+Mono+Display&display=swap');
+
+  :root {
+    --bg: #0a0e0c;
+    --bg-elev: #111613;
+    --line: #1f2925;
+    --line-bright: #2a3833;
+    --text: #d4e0d8;
+    --text-dim: #6b7e74;
+    --text-faint: #3d4a44;
+    --accent: #00ff88;
+    --accent-dim: #00b85f;
+    --warn: #ffb700;
+    --fail: #ff4444;
+    --info: #4db8ff;
+    --pad: clamp(16px, 2vw, 28px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(14px, 1.1vw, 17px);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 2px,
+        rgba(0, 255, 136, 0.015) 2px,
+        rgba(0, 255, 136, 0.015) 3px
+      );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  .frame {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--pad);
+  }
+
+  header {
+    border-bottom: 1px solid var(--line-bright);
+    padding-bottom: var(--pad);
+    margin-bottom: var(--pad);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  .brand {
+    font-family: 'Major Mono Display', monospace;
+    font-size: clamp(22px, 3vw, 38px);
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+  }
+
+  .brand .v {
+    color: var(--text-dim);
+    font-size: 0.5em;
+    letter-spacing: 0.2em;
+    margin-left: 12px;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.85em;
+    margin-top: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .meta {
+    text-align: right;
+    font-size: 0.8em;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .meta .label { color: var(--text-faint); }
+  .meta .val { color: var(--accent-dim); }
+
+  .status-bar {
+    display: flex;
+    gap: 24px;
+    padding: 12px var(--pad);
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    margin-bottom: var(--pad);
+    font-size: 0.85em;
+    flex-wrap: wrap;
+  }
+
+  .status-bar .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+  }
+
+  .status-bar .item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+    gap: var(--pad);
+  }
+
+  .module {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .module::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  .mod-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.04), transparent);
+  }
+
+  .mod-head .name {
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    color: var(--text);
+  }
+
+  .mod-head .id {
+    color: var(--text-faint);
+    font-size: 0.75em;
+    letter-spacing: 0.1em;
+  }
+
+  .mod-body {
+    padding: 16px 20px;
+    min-height: 100px;
+    max-height: 320px;
+    overflow-y: auto;
+    font-size: 0.88em;
+  }
+
+  .mod-body::-webkit-scrollbar { width: 6px; }
+  .mod-body::-webkit-scrollbar-track { background: var(--bg); }
+  .mod-body::-webkit-scrollbar-thumb { background: var(--line-bright); }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--line);
+    gap: 16px;
+  }
+
+  .row:last-child { border-bottom: none; }
+
+  .row .k {
+    color: var(--text-dim);
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+
+  .row .v {
+    color: var(--text);
+    text-align: right;
+    word-break: break-all;
+    max-width: 65%;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+    font-size: 0.75em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .pill.ok { color: var(--accent); }
+  .pill.no { color: var(--fail); }
+  .pill.partial { color: var(--warn); }
+  .pill.info { color: var(--info); }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin: var(--pad) 0;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 12px 20px;
+    font-size: 0.85em;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+  }
+
+  button:hover, button:focus {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    outline: none;
+  }
+
+  button.danger {
+    color: var(--warn);
+    border-color: var(--warn);
+  }
+
+  button.danger:hover, button.danger:focus {
+    background: var(--warn);
+    color: var(--bg);
+    box-shadow: 0 0 20px rgba(255, 183, 0, 0.4);
+  }
+
+  .gamepad-viz {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .axis-bar {
+    height: 20px;
+    background: var(--bg);
+    border: 1px solid var(--line-bright);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .axis-bar .fill {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    background: var(--accent);
+    width: 0;
+    transition: width 0.05s linear, left 0.05s linear;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .axis-label {
+    font-size: 0.75em;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .axis-label .val {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .btn-cell {
+    aspect-ratio: 1;
+    background: var(--bg);
+    border: 1px solid var(--line-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    color: var(--text-dim);
+    transition: all 0.05s;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .btn-cell.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .btn-cell .idx {
+    font-weight: 800;
+    font-size: 1.1em;
+  }
+
+  .btn-cell .val {
+    font-size: 0.85em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .log {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 12px;
+    margin-top: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+    font-size: 0.78em;
+    color: var(--text-dim);
+  }
+
+  .log .entry {
+    padding: 2px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .log .entry:last-child { border-bottom: none; }
+  .log .entry .ts { color: var(--text-faint); margin-right: 8px; }
+  .log .entry.ok { color: var(--accent); }
+  .log .entry.err { color: var(--fail); }
+  .log .entry.warn { color: var(--warn); }
+
+  footer {
+    text-align: center;
+    padding: var(--pad) 0;
+    margin-top: var(--pad);
+    border-top: 1px solid var(--line-bright);
+    color: var(--text-faint);
+    font-size: 0.8em;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .empty {
+    color: var(--text-faint);
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .api-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+  }
+
+  @media (max-width: 600px) {
+    .api-list { grid-template-columns: 1fr; }
+    .gamepad-viz { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; }
+    .meta { text-align: left; }
+  }
+
+  /* boot animation */
+  .module { animation: bootIn 0.4s ease-out backwards; }
+  .module:nth-child(1) { animation-delay: 0.05s; }
+  .module:nth-child(2) { animation-delay: 0.1s; }
+  .module:nth-child(3) { animation-delay: 0.15s; }
+  .module:nth-child(4) { animation-delay: 0.2s; }
+  .module:nth-child(5) { animation-delay: 0.25s; }
+  .module:nth-child(6) { animation-delay: 0.3s; }
+  .module:nth-child(7) { animation-delay: 0.35s; }
+  .module:nth-child(8) { animation-delay: 0.4s; }
+
+  @keyframes bootIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header>
+    <div>
+      <div class="brand">ps5.probe<span class="v">v1.0 // curator build</span></div>
+      <div class="subtitle">browser surface area diagnostic — read-only</div>
+    </div>
+    <div class="meta">
+      <div><span class="label">SESSION</span> <span class="val" id="sessionId">--</span></div>
+      <div><span class="label">UPTIME</span> <span class="val" id="uptime">00:00</span></div>
+      <div><span class="label">FPS</span> <span class="val" id="fps">--</span></div>
+    </div>
+  </header>
+
+  <div class="status-bar">
+    <div class="item"><span class="dot"></span><span>PROBE ACTIVE</span></div>
+    <div class="item"><span style="color:var(--text)">UA:</span><span id="uaShort">detecting...</span></div>
+    <div class="item"><span style="color:var(--text)">RES:</span><span id="resShort">--</span></div>
+    <div class="item"><span style="color:var(--text)">DPR:</span><span id="dprShort">--</span></div>
+  </div>
+
+  <div class="controls">
+    <button onclick="runNetworkTest()">RUN NETWORK PROBE</button>
+    <button onclick="runStorageTest()">RUN STORAGE PROBE</button>
+    <button onclick="runHapticsTest()">TEST HAPTICS</button>
+    <button onclick="runTriggerTest()">TEST ADAPTIVE TRIGGERS</button>
+    <button onclick="exportReport()">EXPORT REPORT</button>
+    <button class="danger" onclick="clearAllStorage()">CLEAR STORAGE</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- IDENTITY -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// identity</span>
+        <span class="id">[01]</span>
+      </div>
+      <div class="mod-body" id="modIdentity"></div>
+    </div>
+
+    <!-- DISPLAY -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// display + render</span>
+        <span class="id">[02]</span>
+      </div>
+      <div class="mod-body" id="modDisplay"></div>
+    </div>
+
+    <!-- WEBGL -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// webgl fingerprint</span>
+        <span class="id">[03]</span>
+      </div>
+      <div class="mod-body" id="modWebGL"></div>
+    </div>
+
+    <!-- API SURFACE -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// api surface</span>
+        <span class="id">[04]</span>
+      </div>
+      <div class="mod-body" id="modAPIs"></div>
+    </div>
+
+    <!-- STORAGE -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// storage quota</span>
+        <span class="id">[05]</span>
+      </div>
+      <div class="mod-body" id="modStorage"></div>
+    </div>
+
+    <!-- NETWORK -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// network behavior</span>
+        <span class="id">[06]</span>
+      </div>
+      <div class="mod-body" id="modNetwork">
+        <div class="empty">press [RUN NETWORK PROBE]</div>
+      </div>
+    </div>
+
+    <!-- GAMEPAD LIVE -->
+    <div class="module full-width">
+      <div class="mod-head">
+        <span class="name">// gamepad live capture</span>
+        <span class="id">[07]</span>
+      </div>
+      <div class="mod-body" id="modGamepad" style="max-height:none;">
+        <div class="empty" id="gpEmpty">no controller detected — press any button on connected pad</div>
+        <div id="gpData" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- DEEP LINKS -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// url scheme probe</span>
+        <span class="id">[08]</span>
+      </div>
+      <div class="mod-body" id="modSchemes"></div>
+    </div>
+
+    <!-- EVENT LOG -->
+    <div class="module">
+      <div class="mod-head">
+        <span class="name">// event log</span>
+        <span class="id">[09]</span>
+      </div>
+      <div class="mod-body">
+        <div class="log" id="eventLog"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    polarityy // curator build // observe, do not modify
+  </footer>
+
+</div>
+
+<script>
+'use strict';
+
+// =========================================================
+// STATE + HELPERS
+// =========================================================
+const startTime = Date.now();
+const sessionId = Math.random().toString(36).slice(2, 10).toUpperCase();
+document.getElementById('sessionId').textContent = sessionId;
+
+const REPORT = {
+  meta: { sessionId, startedAt: new Date().toISOString() },
+  identity: {}, display: {}, webgl: {}, apis: {},
+  storage: {}, network: {}, gamepad: {}, schemes: {}
+};
+
+function log(msg, type='info') {
+  const el = document.getElementById('eventLog');
+  const entry = document.createElement('div');
+  entry.className = 'entry ' + (type==='ok'?'ok':type==='err'?'err':type==='warn'?'warn':'');
+  const ts = new Date().toTimeString().slice(0,8);
+  entry.innerHTML = `<span class="ts">${ts}</span>${msg}`;
+  el.insertBefore(entry, el.firstChild);
+  while (el.children.length > 50) el.removeChild(el.lastChild);
+}
+
+function row(k, v, pillClass) {
+  const pill = pillClass ? `<span class="pill ${pillClass}">${v}</span>` : v;
+  return `<div class="row"><span class="k">${k}</span><span class="v">${pill}</span></div>`;
+}
+
+function exists(obj, path) {
+  try {
+    return path.split('.').reduce((a, k) => a && a[k], obj) !== undefined;
+  } catch(e) { return false; }
+}
+
+// =========================================================
+// 01. IDENTITY
+// =========================================================
+function probeIdentity() {
+  const ua = navigator.userAgent;
+  const data = {
+    userAgent: ua,
+    platform: navigator.platform || 'unknown',
+    vendor: navigator.vendor || 'unknown',
+    language: navigator.language,
+    languages: (navigator.languages || []).join(', '),
+    cookieEnabled: navigator.cookieEnabled,
+    doNotTrack: navigator.doNotTrack || 'unset',
+    hardwareConcurrency: navigator.hardwareConcurrency || 'n/a',
+    deviceMemory: navigator.deviceMemory || 'n/a',
+    maxTouchPoints: navigator.maxTouchPoints || 0,
+    onLine: navigator.onLine
+  };
+  REPORT.identity = data;
+
+  document.getElementById('uaShort').textContent = ua.slice(0, 60) + (ua.length>60?'...':'');
+
+  document.getElementById('modIdentity').innerHTML =
+    row('user-agent', `<small style="font-size:0.8em">${ua}</small>`) +
+    row('platform', data.platform) +
+    row('vendor', data.vendor) +
+    row('language', data.language) +
+    row('languages', data.languages || '—') +
+    row('hw concurrency', data.hardwareConcurrency) +
+    row('device memory', data.deviceMemory + (typeof data.deviceMemory==='number'?' GB':'')) +
+    row('touch points', data.maxTouchPoints) +
+    row('cookies', data.cookieEnabled?'ENABLED':'DISABLED', data.cookieEnabled?'ok':'no') +
+    row('online', data.onLine?'TRUE':'FALSE', data.onLine?'ok':'no');
+
+  log(`identity captured // ua=${ua.slice(0,40)}...`);
+}
+
+// =========================================================
+// 02. DISPLAY + RENDER
+// =========================================================
+function probeDisplay() {
+  const data = {
+    innerWidth: window.innerWidth,
+    innerHeight: window.innerHeight,
+    screenWidth: screen.width,
+    screenHeight: screen.height,
+    availWidth: screen.availWidth,
+    availHeight: screen.availHeight,
+    colorDepth: screen.colorDepth,
+    pixelDepth: screen.pixelDepth,
+    devicePixelRatio: window.devicePixelRatio,
+    orientation: screen.orientation ? screen.orientation.type : 'n/a',
+    colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+    hdr: window.matchMedia('(dynamic-range: high)').matches ? 'yes' : 'no',
+    refreshRate: 'measuring...'
+  };
+  REPORT.display = data;
+
+  document.getElementById('resShort').textContent = `${data.innerWidth}x${data.innerHeight}`;
+  document.getElementById('dprShort').textContent = data.devicePixelRatio;
+
+  const render = (rr) => {
+    document.getElementById('modDisplay').innerHTML =
+      row('viewport', `${data.innerWidth} × ${data.innerHeight}`) +
+      row('screen', `${data.screenWidth} × ${data.screenHeight}`) +
+      row('available', `${data.availWidth} × ${data.availHeight}`) +
+      row('color depth', data.colorDepth + ' bit') +
+      row('pixel ratio', data.devicePixelRatio) +
+      row('orientation', data.orientation) +
+      row('color scheme', data.colorScheme) +
+      row('hdr capable', data.hdr, data.hdr==='yes'?'ok':'no') +
+      row('refresh rate', rr + ' Hz', 'info');
+  };
+  render(data.refreshRate);
+
+  // Measure refresh rate via rAF
+  let frames = 0;
+  let last = performance.now();
+  let samples = [];
+  function tick(now) {
+    frames++;
+    const dt = now - last;
+    last = now;
+    if (frames > 5 && frames < 65) samples.push(1000/dt);
+    if (frames < 65) {
+      requestAnimationFrame(tick);
+    } else {
+      const avg = samples.reduce((a,b)=>a+b,0)/samples.length;
+      data.refreshRate = avg.toFixed(1);
+      REPORT.display.refreshRate = data.refreshRate;
+      render(data.refreshRate);
+      log(`display refresh measured // ${data.refreshRate} Hz`, 'ok');
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+// =========================================================
+// 03. WEBGL FINGERPRINT
+// =========================================================
+function probeWebGL() {
+  const data = {};
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) {
+      data.supported = false;
+      REPORT.webgl = data;
+      document.getElementById('modWebGL').innerHTML = row('webgl', 'NOT SUPPORTED', 'no');
+      log('webgl not supported', 'err');
+      return;
+    }
+    data.supported = true;
+    data.version = gl.getParameter(gl.VERSION);
+    data.shadingLang = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+    data.vendor = gl.getParameter(gl.VENDOR);
+    data.renderer = gl.getParameter(gl.RENDERER);
+    const debug = gl.getExtension('WEBGL_debug_renderer_info');
+    if (debug) {
+      data.unmaskedVendor = gl.getParameter(debug.UNMASKED_VENDOR_WEBGL);
+      data.unmaskedRenderer = gl.getParameter(debug.UNMASKED_RENDERER_WEBGL);
+    }
+    data.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    data.maxViewport = gl.getParameter(gl.MAX_VIEWPORT_DIMS).join(' × ');
+    data.extensions = gl.getSupportedExtensions() || [];
+
+    REPORT.webgl = data;
+
+    document.getElementById('modWebGL').innerHTML =
+      row('version', data.version) +
+      row('shading lang', data.shadingLang) +
+      row('vendor', data.vendor) +
+      row('renderer', data.renderer) +
+      (data.unmaskedVendor ? row('unmasked vendor', data.unmaskedVendor, 'info') : '') +
+      (data.unmaskedRenderer ? row('unmasked gpu', data.unmaskedRenderer, 'info') : '') +
+      row('max texture', data.maxTextureSize) +
+      row('max viewport', data.maxViewport) +
+      row('extensions', data.extensions.length);
+    log(`webgl probed // gpu=${data.unmaskedRenderer || data.renderer}`, 'ok');
+  } catch(e) {
+    log('webgl probe failed: ' + e.message, 'err');
+  }
+}
+
+// =========================================================
+// 04. API SURFACE
+// =========================================================
+function probeAPIs() {
+  const checks = [
+    ['Gamepad API', 'navigator.getGamepads'],
+    ['WebUSB', 'navigator.usb'],
+    ['WebHID', 'navigator.hid'],
+    ['WebBluetooth', 'navigator.bluetooth'],
+    ['WebSerial', 'navigator.serial'],
+    ['WebMIDI', 'navigator.requestMIDIAccess'],
+    ['WebRTC RTCPeerConnection', 'RTCPeerConnection'],
+    ['WebSocket', 'WebSocket'],
+    ['Service Worker', 'navigator.serviceWorker'],
+    ['SharedWorker', 'SharedWorker'],
+    ['WebAssembly', 'WebAssembly'],
+    ['IndexedDB', 'indexedDB'],
+    ['localStorage', 'localStorage'],
+    ['sessionStorage', 'sessionStorage'],
+    ['Cache API', 'caches'],
+    ['File System Access', 'showOpenFilePicker'],
+    ['Clipboard API', 'navigator.clipboard'],
+    ['Notifications', 'Notification'],
+    ['Push API', 'PushManager'],
+    ['Geolocation', 'navigator.geolocation'],
+    ['Vibration', 'navigator.vibrate'],
+    ['Battery', 'navigator.getBattery'],
+    ['Screen Wake Lock', 'navigator.wakeLock'],
+    ['Screen Capture', 'navigator.mediaDevices.getDisplayMedia'],
+    ['getUserMedia', 'navigator.mediaDevices.getUserMedia'],
+    ['Web Audio', 'AudioContext'],
+    ['Speech Synth', 'speechSynthesis'],
+    ['Speech Recog', 'SpeechRecognition'],
+    ['Payment Request', 'PaymentRequest'],
+    ['Credential Mgmt', 'navigator.credentials'],
+    ['Fullscreen', 'document.documentElement.requestFullscreen'],
+    ['Pointer Lock', 'document.documentElement.requestPointerLock'],
+    ['Page Visibility', 'document.visibilityState'],
+    ['Intersection Obs', 'IntersectionObserver'],
+    ['Resize Observer', 'ResizeObserver'],
+    ['BroadcastChannel', 'BroadcastChannel'],
+    ['Beacon', 'navigator.sendBeacon'],
+    ['Performance Obs', 'PerformanceObserver'],
+    ['Crypto SubtleCrypto', 'crypto.subtle'],
+    ['structuredClone', 'structuredClone']
+  ];
+
+  const apiData = {};
+  let html = '<div class="api-list">';
+  checks.forEach(([name, path]) => {
+    const present = exists(window, path) || exists(navigator, path.replace(/^navigator\./,'')) || exists(document, path.replace(/^document\./,'')) || (function(){
+      try { return !!eval(path); } catch(e){ return false; }
+    })();
+    apiData[name] = present;
+    html += `<div class="row" style="padding:3px 0"><span class="k" style="font-size:0.9em">${name}</span><span class="v"><span class="pill ${present?'ok':'no'}" style="font-size:0.7em">${present?'YES':'NO'}</span></span></div>`;
+  });
+  html += '</div>';
+
+  REPORT.apis = apiData;
+  document.getElementById('modAPIs').innerHTML = html;
+  const yesCount = Object.values(apiData).filter(Boolean).length;
+  log(`api surface probed // ${yesCount}/${checks.length} present`, 'ok');
+}
+
+// =========================================================
+// 05. STORAGE
+// =========================================================
+async function probeStorage() {
+  const data = {};
+
+  // localStorage
+  try {
+    const tk = '__probe_' + Date.now();
+    localStorage.setItem(tk, 'x');
+    data.localStorage = localStorage.getItem(tk) === 'x';
+    localStorage.removeItem(tk);
+  } catch(e) { data.localStorage = false; }
+
+  // sessionStorage
+  try {
+    const tk = '__probe_' + Date.now();
+    sessionStorage.setItem(tk, 'x');
+    data.sessionStorage = sessionStorage.getItem(tk) === 'x';
+    sessionStorage.removeItem(tk);
+  } catch(e) { data.sessionStorage = false; }
+
+  // Quota estimate
+  let quotaMB = 'n/a', usageMB = 'n/a';
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const est = await navigator.storage.estimate();
+      quotaMB = (est.quota / 1024 / 1024).toFixed(1);
+      usageMB = (est.usage / 1024 / 1024).toFixed(3);
+      data.quotaBytes = est.quota;
+      data.usageBytes = est.usage;
+    } catch(e) { /* */ }
+  }
+
+  // Persistent storage
+  let persistent = 'n/a';
+  if (navigator.storage && navigator.storage.persisted) {
+    try { persistent = (await navigator.storage.persisted()) ? 'YES' : 'NO'; } catch(e){}
+  }
+  data.persistent = persistent;
+
+  REPORT.storage = data;
+
+  document.getElementById('modStorage').innerHTML =
+    row('localStorage', data.localStorage?'WRITABLE':'BLOCKED', data.localStorage?'ok':'no') +
+    row('sessionStorage', data.sessionStorage?'WRITABLE':'BLOCKED', data.sessionStorage?'ok':'no') +
+    row('quota', quotaMB + ' MB') +
+    row('usage', usageMB + ' MB') +
+    row('persistent', persistent, persistent==='YES'?'ok':persistent==='NO'?'warn':'');
+
+  log(`storage probed // quota=${quotaMB}MB`, 'ok');
+}
+
+// =========================================================
+// 06. NETWORK PROBE
+// =========================================================
+async function runNetworkTest() {
+  const target = document.getElementById('modNetwork');
+  target.innerHTML = '<div class="empty">probing...</div>';
+  const tests = [
+    { name: 'fetch self', url: location.href, mode: 'cors' },
+    { name: 'fetch httpbin', url: 'https://httpbin.org/get', mode: 'cors' },
+    { name: 'fetch no-cors', url: 'https://example.com', mode: 'no-cors' },
+    { name: 'cdn (jsdelivr)', url: 'https://cdn.jsdelivr.net/npm/lodash@4/package.json', mode: 'cors' }
+  ];
+  const results = [];
+  for (const t of tests) {
+    const start = performance.now();
+    try {
+      const r = await fetch(t.url, { mode: t.mode, cache: 'no-store' });
+      const ms = (performance.now() - start).toFixed(0);
+      results.push({ ...t, ok: true, status: r.status || 'opaque', ms });
+    } catch(e) {
+      const ms = (performance.now() - start).toFixed(0);
+      results.push({ ...t, ok: false, status: e.message.slice(0,40), ms });
+    }
+  }
+
+  // WebSocket test
+  let wsResult = { name: 'websocket', ok: false, status: 'n/a', ms: '—' };
+  try {
+    await new Promise((res, rej) => {
+      const ws = new WebSocket('wss://echo.websocket.events');
+      const t0 = performance.now();
+      const to = setTimeout(() => { ws.close(); rej(new Error('timeout')); }, 4000);
+      ws.onopen = () => {
+        wsResult.ok = true;
+        wsResult.ms = (performance.now()-t0).toFixed(0);
+        wsResult.status = 'OPEN';
+        clearTimeout(to);
+        ws.close();
+        res();
+      };
+      ws.onerror = () => { wsResult.status = 'error'; clearTimeout(to); rej(); };
+    }).catch(()=>{});
+  } catch(e) {}
+  results.push(wsResult);
+
+  REPORT.network = results;
+
+  target.innerHTML = results.map(r =>
+    row(r.name, `${r.status} <small style="color:var(--text-faint)">${r.ms}ms</small>`, r.ok?'ok':'no')
+  ).join('');
+  log('network probe complete', 'ok');
+}
+
+// =========================================================
+// 07. GAMEPAD LIVE
+// =========================================================
+let gpAnimating = false;
+let gpLast = null;
+
+function probeGamepadLoop() {
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let pad = null;
+  for (const p of pads) if (p) { pad = p; break; }
+
+  if (!pad) {
+    if (gpLast) {
+      document.getElementById('gpEmpty').style.display = 'block';
+      document.getElementById('gpData').style.display = 'none';
+      gpLast = null;
+    }
+    requestAnimationFrame(probeGamepadLoop);
+    return;
+  }
+
+  if (!gpLast || gpLast.id !== pad.id) {
+    gpLast = pad;
+    document.getElementById('gpEmpty').style.display = 'none';
+    document.getElementById('gpData').style.display = 'block';
+    renderGamepadStatic(pad);
+    log(`gamepad detected // ${pad.id}`, 'ok');
+  }
+
+  renderGamepadLive(pad);
+  REPORT.gamepad = {
+    id: pad.id,
+    index: pad.index,
+    mapping: pad.mapping,
+    connected: pad.connected,
+    buttonCount: pad.buttons.length,
+    axisCount: pad.axes.length,
+    hasVibration: !!(pad.vibrationActuator),
+    vibrationType: pad.vibrationActuator ? pad.vibrationActuator.type : null,
+    hasHapticActuators: !!(pad.hapticActuators && pad.hapticActuators.length),
+    hapticActuatorCount: pad.hapticActuators ? pad.hapticActuators.length : 0,
+    timestamp: pad.timestamp
+  };
+
+  requestAnimationFrame(probeGamepadLoop);
+}
+
+function renderGamepadStatic(pad) {
+  const info = `
+    <div class="row"><span class="k">id</span><span class="v">${pad.id}</span></div>
+    <div class="row"><span class="k">index</span><span class="v">${pad.index}</span></div>
+    <div class="row"><span class="k">mapping</span><span class="v">${pad.mapping || 'unknown'}</span></div>
+    <div class="row"><span class="k">buttons</span><span class="v">${pad.buttons.length}</span></div>
+    <div class="row"><span class="k">axes</span><span class="v">${pad.axes.length}</span></div>
+    <div class="row"><span class="k">vibration actuator</span><span class="v"><span class="pill ${pad.vibrationActuator?'ok':'no'}">${pad.vibrationActuator?(pad.vibrationActuator.type||'YES'):'NO'}</span></span></div>
+    <div class="row"><span class="k">haptic actuators</span><span class="v"><span class="pill ${(pad.hapticActuators&&pad.hapticActuators.length)?'ok':'no'}">${pad.hapticActuators?pad.hapticActuators.length:0}</span></span></div>
+    <div style="margin-top:16px;font-size:0.8em;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">// axes</div>
+    <div class="gamepad-viz" id="gpAxes"></div>
+    <div style="margin-top:16px;font-size:0.8em;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">// buttons</div>
+    <div class="button-grid" id="gpButtons"></div>
+  `;
+  document.getElementById('gpData').innerHTML = info;
+
+  const axEl = document.getElementById('gpAxes');
+  for (let i=0; i<pad.axes.length; i++) {
+    const d = document.createElement('div');
+    d.innerHTML = `<div class="axis-label"><span>axis ${i}</span><span class="val" id="axval-${i}">0.000</span></div><div class="axis-bar"><div class="fill" id="axfill-${i}"></div></div>`;
+    axEl.appendChild(d);
+  }
+
+  const btnEl = document.getElementById('gpButtons');
+  for (let i=0; i<pad.buttons.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'btn-cell';
+    d.id = 'btn-' + i;
+    d.innerHTML = `<span class="idx">${i}</span><span class="val">0.00</span>`;
+    btnEl.appendChild(d);
+  }
+}
+
+function renderGamepadLive(pad) {
+  for (let i=0; i<pad.axes.length; i++) {
+    const v = pad.axes[i];
+    const valEl = document.getElementById('axval-' + i);
+    const fillEl = document.getElementById('axfill-' + i);
+    if (valEl) valEl.textContent = v.toFixed(3);
+    if (fillEl) {
+      const pct = Math.abs(v) * 50;
+      if (v >= 0) {
+        fillEl.style.left = '50%';
+        fillEl.style.width = pct + '%';
+      } else {
+        fillEl.style.left = (50 - pct) + '%';
+        fillEl.style.width = pct + '%';
+      }
+    }
+  }
+  for (let i=0; i<pad.buttons.length; i++) {
+    const b = pad.buttons[i];
+    const el = document.getElementById('btn-' + i);
+    if (el) {
+      el.classList.toggle('active', b.pressed || b.value > 0.05);
+      const v = el.querySelector('.val');
+      if (v) v.textContent = b.value.toFixed(2);
+    }
+  }
+}
+
+window.addEventListener('gamepadconnected', e => log(`gamepad connected idx=${e.gamepad.index}`, 'ok'));
+window.addEventListener('gamepaddisconnected', e => log(`gamepad disconnected idx=${e.gamepad.index}`, 'warn'));
+requestAnimationFrame(probeGamepadLoop);
+
+// =========================================================
+// HAPTICS + TRIGGER TESTS
+// =========================================================
+async function runHapticsTest() {
+  const pads = navigator.getGamepads();
+  let pad = null;
+  for (const p of pads) if (p) { pad = p; break; }
+  if (!pad) { log('no gamepad for haptics test', 'err'); return; }
+
+  if (pad.vibrationActuator) {
+    try {
+      await pad.vibrationActuator.playEffect('dual-rumble', {
+        startDelay: 0, duration: 800,
+        weakMagnitude: 0.6, strongMagnitude: 0.9
+      });
+      log('vibrationActuator.playEffect: SUCCESS', 'ok');
+    } catch(e) {
+      log('vibrationActuator failed: ' + e.message, 'err');
+    }
+  } else if (pad.hapticActuators && pad.hapticActuators.length) {
+    try {
+      await pad.hapticActuators[0].pulse(1.0, 800);
+      log('hapticActuator.pulse: SUCCESS', 'ok');
+    } catch(e) {
+      log('hapticActuator failed: ' + e.message, 'err');
+    }
+  } else {
+    log('no haptic interface exposed on this pad', 'warn');
+  }
+}
+
+async function runTriggerTest() {
+  const pads = navigator.getGamepads();
+  let pad = null;
+  for (const p of pads) if (p) { pad = p; break; }
+  if (!pad) { log('no gamepad for trigger test', 'err'); return; }
+
+  // Chromium/desktop exposes 'trigger-rumble' effect type for DualSense adaptive triggers.
+  // Worth probing whether PS5 browser exposes it.
+  if (pad.vibrationActuator) {
+    const effects = ['trigger-rumble', 'dual-rumble'];
+    for (const ef of effects) {
+      try {
+        await pad.vibrationActuator.playEffect(ef, {
+          startDelay: 0, duration: 600,
+          leftTrigger: 0.8, rightTrigger: 0.8,
+          weakMagnitude: 0.3, strongMagnitude: 0.5
+        });
+        log(`effect "${ef}": ACCEPTED`, 'ok');
+        await new Promise(r => setTimeout(r, 700));
+      } catch(e) {
+        log(`effect "${ef}": ${e.message.slice(0,50)}`, 'warn');
+      }
+    }
+  } else {
+    log('no vibrationActuator — adaptive triggers unreachable via web', 'warn');
+  }
+}
+
+// =========================================================
+// 08. URL SCHEMES (passive — just lists, does not auto-trigger)
+// =========================================================
+function probeSchemes() {
+  const schemes = [
+    'playstation://',
+    'psapp://',
+    'store://',
+    'sce://',
+    'about:blank',
+    'data:text/plain,test',
+    'tel:0',
+    'mailto:test@test.com',
+    'file:///'
+  ];
+  let html = '<div style="font-size:0.8em;color:var(--text-dim);margin-bottom:10px">passive list — click to attempt navigation (returns silently if blocked)</div>';
+  schemes.forEach(s => {
+    html += `<div class="row"><span class="k">${s}</span><span class="v"><button style="padding:2px 10px;font-size:0.7em;letter-spacing:0.05em" onclick="attemptScheme('${s}')">PROBE</button></span></div>`;
+  });
+  REPORT.schemes = schemes;
+  document.getElementById('modSchemes').innerHTML = html;
+}
+
+function attemptScheme(s) {
+  log(`attempting scheme: ${s}`, 'warn');
+  try {
+    const w = window.open(s, '_blank');
+    setTimeout(() => {
+      if (w && !w.closed) {
+        log(`scheme ${s} opened window`, 'ok');
+      } else {
+        log(`scheme ${s} blocked or returned silently`, 'warn');
+      }
+    }, 500);
+  } catch(e) {
+    log(`scheme ${s} threw: ${e.message}`, 'err');
+  }
+}
+
+// =========================================================
+// UTILITIES — FPS counter, uptime
+// =========================================================
+let fpsFrames = 0, fpsLast = performance.now();
+function fpsLoop(now) {
+  fpsFrames++;
+  if (now - fpsLast >= 1000) {
+    document.getElementById('fps').textContent = fpsFrames;
+    fpsFrames = 0;
+    fpsLast = now;
+  }
+  requestAnimationFrame(fpsLoop);
+}
+requestAnimationFrame(fpsLoop);
+
+setInterval(() => {
+  const s = Math.floor((Date.now() - startTime)/1000);
+  const m = Math.floor(s/60);
+  document.getElementById('uptime').textContent =
+    String(m).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+}, 1000);
+
+// =========================================================
+// STORAGE QUICK ACTIONS
+// =========================================================
+async function runStorageTest() {
+  await probeStorage();
+}
+
+function clearAllStorage() {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    log('localStorage + sessionStorage cleared', 'ok');
+    probeStorage();
+  } catch(e) {
+    log('clear failed: ' + e.message, 'err');
+  }
+}
+
+// =========================================================
+// EXPORT
+// =========================================================
+function exportReport() {
+  REPORT.meta.exportedAt = new Date().toISOString();
+  const txt = JSON.stringify(REPORT, null, 2);
+  // PS5 browser likely won't allow download, so render to a textarea overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:24px;`;
+  overlay.innerHTML = `
+    <div style="background:var(--bg-elev);border:1px solid var(--accent);width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--accent);letter-spacing:0.15em;font-weight:800">// PROBE REPORT</span>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="padding:6px 14px">CLOSE</button>
+      </div>
+      <textarea readonly style="flex:1;background:var(--bg);color:var(--text);border:0;padding:16px;font-family:'JetBrains Mono',monospace;font-size:0.8em;min-height:60vh;resize:none">${txt}</textarea>
+      <div style="padding:10px 20px;color:var(--text-dim);font-size:0.75em;letter-spacing:0.1em">SELECT ALL + COPY → paste into a doc on PC</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  log('report exported', 'ok');
+}
+
+// =========================================================
+// BOOT
+// =========================================================
+log('probe v1.0 initializing...', 'ok');
+probeIdentity();
+probeDisplay();
+probeWebGL();
+probeAPIs();
+probeStorage();
+probeSchemes();
+log('probe ready — connect controller for live capture', 'ok');
+
+</script>
+</body>
+</html>
