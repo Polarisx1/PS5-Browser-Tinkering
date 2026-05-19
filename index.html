@@ -1373,49 +1373,77 @@ function diag_environment() {
 }
 
 function diag_api() {
+  // Each probe has: name, path (presence test), and optionally `functional` —
+  // a function that returns true only if the API is actually *usable*, not just
+  // listed on window. Sony's WebKit sometimes leaves the constructor exposed but
+  // returns nothing useful when called, which is functionally dead.
   const probes = [
-    ['Gamepad API', 'navigator.getGamepads'],
-    ['WebUSB', 'navigator.usb'],
-    ['WebHID', 'navigator.hid'],
-    ['WebSerial', 'navigator.serial'],
-    ['WebBluetooth', 'navigator.bluetooth'],
-    ['WebRTC', 'window.RTCPeerConnection'],
-    ['WebSocket', 'window.WebSocket'],
-    ['ServiceWorker', 'navigator.serviceWorker'],
-    ['SharedWorker', 'window.SharedWorker'],
-    ['WebAssembly', 'window.WebAssembly'],
-    ['IndexedDB', 'window.indexedDB'],
-    ['localStorage', 'window.localStorage'],
-    ['Cache API', 'window.caches'],
-    ['File System Access', 'window.showOpenFilePicker'],
-    ['Clipboard API', 'navigator.clipboard'],
-    ['Geolocation', 'navigator.geolocation'],
-    ['Web Audio', 'window.AudioContext'],
-    ['Screen Wake Lock', 'navigator.wakeLock'],
-    ['Crypto.subtle', 'crypto.subtle'],
-    ['BroadcastChannel', 'window.BroadcastChannel'],
-    ['structuredClone', 'window.structuredClone'],
-    ['Beacon', 'navigator.sendBeacon'],
-    ['Performance Observer', 'window.PerformanceObserver']
+    { n: 'Gamepad API', p: 'navigator.getGamepads',
+      f: () => { try { const g = navigator.getGamepads(); return g && (g.length > 0 || typeof g[Symbol.iterator] === 'function'); } catch(e){ return false; } } },
+    { n: 'WebUSB', p: 'navigator.usb' },
+    { n: 'WebHID', p: 'navigator.hid' },
+    { n: 'WebSerial', p: 'navigator.serial' },
+    { n: 'WebBluetooth', p: 'navigator.bluetooth' },
+    { n: 'WebRTC', p: 'window.RTCPeerConnection' },
+    { n: 'WebSocket', p: 'window.WebSocket' },
+    { n: 'ServiceWorker', p: 'navigator.serviceWorker' },
+    { n: 'SharedWorker', p: 'window.SharedWorker' },
+    { n: 'WebAssembly', p: 'window.WebAssembly',
+      f: () => { try { return WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0])); } catch(e){ return false; } } },
+    { n: 'WebGL', p: 'window.WebGLRenderingContext',
+      f: () => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch(e){ return false; } } },
+    { n: 'IndexedDB', p: 'window.indexedDB' },
+    { n: 'localStorage', p: 'window.localStorage' },
+    { n: 'Cache API', p: 'window.caches' },
+    { n: 'File System Access', p: 'window.showOpenFilePicker' },
+    { n: 'Clipboard API', p: 'navigator.clipboard' },
+    { n: 'Geolocation', p: 'navigator.geolocation' },
+    { n: 'Web Audio', p: 'window.AudioContext',
+      f: () => { try { const a = new (window.AudioContext || window.webkitAudioContext)(); const ok = !!a && typeof a.createOscillator === 'function'; a.close && a.close(); return ok; } catch(e){ return false; } } },
+    { n: 'Screen Wake Lock', p: 'navigator.wakeLock' },
+    { n: 'Crypto.subtle', p: 'crypto.subtle' },
+    { n: 'BroadcastChannel', p: 'window.BroadcastChannel' },
+    { n: 'structuredClone', p: 'window.structuredClone' },
+    { n: 'Beacon', p: 'navigator.sendBeacon' },
+    { n: 'Performance Observer', p: 'window.PerformanceObserver' }
   ];
 
   const data = {};
   let html = '';
-  let live = 0, dead = 0;
-  for (const [name, path] of probes) {
-    let present = false;
-    try { present = !!eval(path); } catch(e) { present = false; }
-    data[name] = present;
-    if (present) live++; else dead++;
-    html += row(name, present ? 'present' : 'absent', { cls: present ? 'ok' : 'no', txt: present ? 'ALIVE' : 'DEAD' });
+  let present = 0, absent = 0, stubbed = 0;
+  for (const probe of probes) {
+    let isPresent = false;
+    try { isPresent = !!eval(probe.p); } catch(e) { isPresent = false; }
+    let isFunctional = isPresent;
+    let label = isPresent ? 'PRESENT' : 'ABSENT';
+    let cls = isPresent ? 'ok' : 'no';
+
+    // If a functional test exists, run it
+    if (isPresent && probe.f) {
+      try { isFunctional = probe.f(); } catch(e) { isFunctional = false; }
+      if (!isFunctional) {
+        label = 'STUBBED';
+        cls = 'warn';
+        stubbed++;
+      }
+    }
+
+    if (isPresent && isFunctional) present++;
+    else if (!isPresent) absent++;
+
+    data[probe.n] = { present: isPresent, functional: isFunctional };
+    html += row(probe.n,
+      isFunctional ? 'present &amp; functional' : isPresent ? 'in window, not callable' : 'not in window',
+      { cls, txt: label });
   }
   REPORT.diagnostic.apiSurface = data;
   document.getElementById('dApi').innerHTML = html;
 
-  document.getElementById('rStor').textContent = data['Cache API'] && data['localStorage'] ? 'cache+ls' : 'partial';
+  document.getElementById('rStor').textContent = (data['Cache API']?.functional && data['localStorage']?.functional) ? 'cache+ls' : 'partial';
 
+  const stubNote = stubbed > 0 ? ` <strong>${stubbed} APIs are stubbed</strong> — listed on <code>window</code> but not actually callable (a common Sony pattern: keep the surface for compat, but return nothing useful).` : '';
   finding('dApiFind',
-    `Of ${probes.length} surveyed APIs: <strong>${live} alive</strong>, <strong>${dead} dead</strong>. The pattern is consistent — Sony preserved networking, storage, crypto, and inter-context messaging, while killing every API that touches hardware (USB, HID, Bluetooth, Gamepad, GPU via WebGL, audio synthesis). The constraint isn't symmetric: storage and crypto lanes are wide open.`,
+    `Of ${probes.length} surveyed APIs: <strong>${present} fully functional</strong>, <strong>${absent} absent</strong>, <strong>${stubbed} stubbed</strong>.${stubNote} The pattern is consistent on PS5 — Sony preserves networking, storage, crypto, and inter-context messaging, while removing or stubbing every API that touches hardware (USB, HID, Bluetooth, Gamepad, GPU via WebGL, audio synthesis). The constraint isn't symmetric: storage and crypto lanes are wide open.`,
     'ok');
 }
 
@@ -2636,9 +2664,16 @@ async function att_generate() {
       crypto: !!crypto.subtle,
       sharedWorker: typeof SharedWorker !== 'undefined',
       broadcastChannel: typeof BroadcastChannel !== 'undefined',
-      webgl: false,
+      webgl: (() => {
+        try {
+          const c = document.createElement('canvas');
+          return !!(c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl'));
+        } catch(e) { return false; }
+      })(),
       webassembly: typeof WebAssembly !== 'undefined',
-      indexeddb: 'indexedDB' in window
+      indexeddb: 'indexedDB' in window,
+      gamepadAPI: typeof navigator.getGamepads === 'function',
+      webAudio: typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined'
     }
   };
 
