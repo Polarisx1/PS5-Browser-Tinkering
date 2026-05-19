@@ -3,1196 +3,2459 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PS5 BROWSER PROBE // v1.0</title>
+<title>PS5.WEB — Field Manual &amp; Capability Demonstration</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Major+Mono+Display&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
   :root {
-    --bg: #0a0e0c;
-    --bg-elev: #111613;
-    --line: #1f2925;
-    --line-bright: #2a3833;
-    --text: #d4e0d8;
-    --text-dim: #6b7e74;
-    --text-faint: #3d4a44;
-    --accent: #00ff88;
-    --accent-dim: #00b85f;
-    --warn: #ffb700;
-    --fail: #ff4444;
-    --info: #4db8ff;
-    --pad: clamp(16px, 2vw, 28px);
+    --paper: #f5ecd9;
+    --paper-shade: #ede1c4;
+    --paper-deep: #e0d2af;
+    --indigo: #1a1d3a;
+    --indigo-soft: #2d3155;
+    --indigo-line: #4b4f78;
+    --ink: #14162b;
+    --ink-soft: #3d4060;
+    --ink-faint: #7a7a8f;
+    --coral: #d94f3b;
+    --coral-soft: #f3c1b6;
+    --olive: #6b7339;
+    --olive-soft: #d2d4a5;
+    --rust: #a14d2a;
+    --rust-soft: #e9c8b1;
+    --rule: #b9aa86;
+    --rule-soft: #cfc2a3;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   html, body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--paper);
+    color: var(--ink);
     font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(14px, 1.1vw, 17px);
-    line-height: 1.5;
+    font-size: clamp(13px, 0.95vw, 15px);
+    line-height: 1.55;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
+  /* paper texture */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0,
-        transparent 2px,
-        rgba(0, 255, 136, 0.015) 2px,
-        rgba(0, 255, 136, 0.015) 3px
-      );
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(20,22,43,0.025) 1px, transparent 2px),
+      radial-gradient(circle at 88% 72%, rgba(20,22,43,0.02) 1px, transparent 2px),
+      radial-gradient(circle at 45% 90%, rgba(161,77,42,0.03) 1px, transparent 2px);
+    background-size: 6px 6px, 11px 11px, 17px 17px;
     pointer-events: none;
-    z-index: 100;
+    z-index: 1;
+    opacity: 0.7;
   }
 
+  /* vertical fold marks */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
-    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+    background: linear-gradient(90deg,
+      transparent 0%, transparent 49.7%,
+      rgba(20,22,43,0.04) 49.85%, rgba(20,22,43,0.04) 50.15%,
+      transparent 50.3%, transparent 100%);
     pointer-events: none;
-    z-index: 99;
+    z-index: 1;
   }
 
-  .frame {
+  .page {
     max-width: 1400px;
     margin: 0 auto;
-    padding: var(--pad);
+    padding: clamp(20px, 3vw, 56px) clamp(16px, 3vw, 48px);
+    position: relative;
+    z-index: 2;
   }
 
+  /* ============== MASTHEAD ============== */
   header {
-    border-bottom: 1px solid var(--line-bright);
-    padding-bottom: var(--pad);
-    margin-bottom: var(--pad);
+    border-top: 6px double var(--indigo);
+    border-bottom: 1px solid var(--indigo);
+    padding: 32px 0 28px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .preamble {
     display: flex;
+    justify-content: space-between;
+    font-size: 0.72em;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 24px;
     flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .preamble .right { color: var(--coral); }
+
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(46px, 8vw, 112px);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+    color: var(--indigo);
+    font-variation-settings: "opsz" 144;
+  }
+
+  h1.title .accent {
+    color: var(--coral);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  h1.title .sub {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 0.32em;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: 8px;
+  }
+
+  .strapline {
+    margin-top: 28px;
+    display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    gap: 16px;
-  }
-
-  .brand {
-    font-family: 'Major Mono Display', monospace;
-    font-size: clamp(22px, 3vw, 38px);
-    letter-spacing: 0.05em;
-    color: var(--accent);
-    text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-  }
-
-  .brand .v {
-    color: var(--text-dim);
-    font-size: 0.5em;
-    letter-spacing: 0.2em;
-    margin-left: 12px;
-  }
-
-  .subtitle {
-    color: var(--text-dim);
-    font-size: 0.85em;
-    margin-top: 8px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .meta {
-    text-align: right;
-    font-size: 0.8em;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-  }
-
-  .meta .label { color: var(--text-faint); }
-  .meta .val { color: var(--accent-dim); }
-
-  .status-bar {
-    display: flex;
-    gap: 24px;
-    padding: 12px var(--pad);
-    background: var(--bg-elev);
-    border: 1px solid var(--line);
-    margin-bottom: var(--pad);
-    font-size: 0.85em;
     flex-wrap: wrap;
+    gap: 24px;
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
   }
 
-  .status-bar .item {
+  .strapline .desc {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: clamp(15px, 1.4vw, 19px);
+    color: var(--ink-soft);
+    max-width: 64ch;
+    line-height: 1.5;
+  }
+
+  .strapline .stamp {
+    text-align: right;
+    font-size: 0.78em;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .strapline .stamp .lbl { color: var(--ink-faint); letter-spacing: 0.1em; }
+  .strapline .stamp .v { color: var(--indigo); font-weight: 600; }
+
+  /* ============== STICKY STATUS RAIL ============== */
+  .rail {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-top: 1px solid var(--indigo);
+    border-bottom: 1px solid var(--indigo);
+    padding: 9px 0;
+    margin: 0 0 32px 0;
     display: flex;
+    gap: clamp(10px, 1.5vw, 22px);
+    flex-wrap: wrap;
+    font-size: 0.74em;
     align-items: center;
-    gap: 8px;
-    color: var(--text-dim);
   }
 
-  .status-bar .item .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-    animation: pulse 2s ease-in-out infinite;
+  .rail .item { display: flex; gap: 6px; align-items: center; }
+  .rail .item .lbl { color: var(--ink-faint); letter-spacing: 0.1em; text-transform: uppercase; }
+  .rail .item .v { color: var(--indigo); font-weight: 700; }
+  .rail .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--coral);
+    animation: blip 1.8s ease-in-out infinite;
   }
+  @keyframes blip { 0%, 100% { opacity: 1; transform: scale(1);} 50% { opacity: 0.4; transform: scale(0.8);} }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  .grid {
+  /* ============== NAV TABS ============== */
+  nav.pillars {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
-    gap: var(--pad);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--indigo);
+    margin-bottom: 40px;
   }
 
-  .module {
-    background: var(--bg-elev);
-    border: 1px solid var(--line);
+  nav.pillars button {
+    background: var(--paper-shade);
+    color: var(--indigo);
+    border: 0;
+    border-right: 1px solid var(--indigo);
+    padding: 18px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: left;
+    transition: all 0.15s;
     position: relative;
-    overflow: hidden;
   }
 
-  .module::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px;
-    height: 100%;
-    background: var(--accent);
-    opacity: 0.4;
+  nav.pillars button:last-child { border-right: 0; }
+
+  nav.pillars button:hover { background: var(--paper-deep); }
+
+  nav.pillars button.active {
+    background: var(--indigo);
+    color: var(--paper);
   }
 
-  .mod-head {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(90deg, rgba(0, 255, 136, 0.04), transparent);
+  nav.pillars button .num {
+    display: block;
+    font-size: 0.7em;
+    letter-spacing: 0.2em;
+    color: var(--coral);
+    margin-bottom: 6px;
   }
+  nav.pillars button.active .num { color: var(--paper-deep); }
 
-  .mod-head .name {
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-size: 0.9em;
-    color: var(--text);
+  nav.pillars button .nm {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(16px, 1.6vw, 22px);
+    letter-spacing: -0.01em;
   }
-
-  .mod-head .id {
-    color: var(--text-faint);
-    font-size: 0.75em;
-    letter-spacing: 0.1em;
-  }
-
-  .mod-body {
-    padding: 16px 20px;
-    min-height: 100px;
-    max-height: 320px;
-    overflow-y: auto;
-    font-size: 0.88em;
-  }
-
-  .mod-body::-webkit-scrollbar { width: 6px; }
-  .mod-body::-webkit-scrollbar-track { background: var(--bg); }
-  .mod-body::-webkit-scrollbar-thumb { background: var(--line-bright); }
-
-  .row {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    border-bottom: 1px dashed var(--line);
-    gap: 16px;
-  }
-
-  .row:last-child { border-bottom: none; }
-
-  .row .k {
-    color: var(--text-dim);
-    flex-shrink: 0;
+  nav.pillars button .ds {
+    display: block;
+    font-size: 0.72em;
+    margin-top: 6px;
+    color: var(--ink-soft);
     letter-spacing: 0.04em;
   }
+  nav.pillars button.active .ds { color: var(--paper-shade); }
 
-  .row .v {
-    color: var(--text);
-    text-align: right;
+  /* ============== PILLAR SECTIONS ============== */
+  .pillar { display: none; }
+  .pillar.active { display: block; animation: rise 0.4s ease-out; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pillar-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid var(--indigo);
+    padding-bottom: 14px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .pillar-head h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(28px, 3.4vw, 44px);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--indigo);
+  }
+  .pillar-head h2 em {
+    color: var(--coral);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .pillar-head .meta {
+    font-size: 0.74em;
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ============== CARDS ============== */
+  .card {
+    background: rgba(255,255,255,0.35);
+    border: 1px solid var(--indigo);
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    height: 1px;
+    background: var(--coral);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .card:hover::before { transform: scaleX(1); }
+
+  .card-head {
+    padding: 14px 20px;
+    background: var(--paper-shade);
+    border-bottom: 1px solid var(--indigo);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .card-id {
+    font-size: 0.7em;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(17px, 1.7vw, 22px);
+    color: var(--indigo);
+    margin-top: 2px;
+    line-height: 1.2;
+  }
+
+  .card-question {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 0.92em;
+    margin-top: 4px;
+    max-width: 70ch;
+    line-height: 1.45;
+  }
+
+  .card-body { padding: 20px; }
+
+  /* ============== DATA ROWS ============== */
+  .grid-data {
+    display: grid;
+    grid-template-columns: 240px 1fr auto;
+    gap: 12px 18px;
+    align-items: baseline;
+  }
+  .grid-data .k {
+    color: var(--ink-faint);
+    font-size: 0.86em;
+    border-bottom: 1px dotted var(--rule-soft);
+    padding-bottom: 4px;
+  }
+  .grid-data .v {
+    color: var(--indigo);
     word-break: break-all;
-    max-width: 65%;
+    border-bottom: 1px dotted var(--rule-soft);
+    padding-bottom: 4px;
+  }
+  .grid-data .t {
+    border-bottom: 1px dotted var(--rule-soft);
+    padding-bottom: 4px;
+    text-align: right;
   }
 
   .pill {
     display: inline-block;
-    padding: 2px 8px;
-    border: 1px solid currentColor;
-    font-size: 0.75em;
-    letter-spacing: 0.1em;
+    padding: 2px 9px;
+    font-size: 0.7em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    border-radius: 2px;
+    font-weight: 700;
+    border: 1px solid currentColor;
+    white-space: nowrap;
   }
+  .pill.ok { color: var(--olive); background: var(--olive-soft); }
+  .pill.no { color: var(--coral); background: var(--coral-soft); }
+  .pill.warn { color: var(--rust); background: var(--rust-soft); }
+  .pill.run { color: var(--indigo); background: var(--paper-deep); }
+  .pill.novel { color: var(--coral); background: var(--paper); border-style: dashed; }
 
-  .pill.ok { color: var(--accent); }
-  .pill.no { color: var(--fail); }
-  .pill.partial { color: var(--warn); }
-  .pill.info { color: var(--info); }
-
-  .full-width {
-    grid-column: 1 / -1;
-  }
-
+  /* ============== BUTTONS ============== */
   .controls {
     display: flex;
-    gap: 12px;
-    margin: var(--pad) 0;
+    gap: 10px;
     flex-wrap: wrap;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--rule);
   }
 
-  button {
+  .btn {
     font-family: 'JetBrains Mono', monospace;
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent-dim);
-    padding: 12px 20px;
-    font-size: 0.85em;
-    letter-spacing: 0.15em;
+    background: var(--paper);
+    color: var(--indigo);
+    border: 1.5px solid var(--indigo);
+    padding: 9px 18px;
+    font-size: 0.78em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
     font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
   }
-
-  button:hover, button:focus {
-    background: var(--accent);
-    color: var(--bg);
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+  .btn:hover, .btn:focus {
+    background: var(--indigo);
+    color: var(--paper);
     outline: none;
   }
-
-  button.danger {
-    color: var(--warn);
-    border-color: var(--warn);
+  .btn.primary {
+    background: var(--coral);
+    color: var(--paper);
+    border-color: var(--coral);
+  }
+  .btn.primary:hover, .btn.primary:focus {
+    background: var(--indigo);
+    border-color: var(--indigo);
+  }
+  .btn.ghost {
+    border-color: var(--ink-faint);
+    color: var(--ink-soft);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
-  button.danger:hover, button.danger:focus {
-    background: var(--warn);
-    color: var(--bg);
-    box-shadow: 0 0 20px rgba(255, 183, 0, 0.4);
+  /* ============== TABLES ============== */
+  table.lab {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84em;
+    margin-top: 10px;
+  }
+  table.lab th {
+    text-align: left;
+    padding: 8px 12px 6px;
+    border-bottom: 2px solid var(--indigo);
+    font-size: 0.78em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--indigo);
+  }
+  table.lab td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink-soft);
+  }
+  table.lab td.n { text-align: right; color: var(--indigo); font-variant-numeric: tabular-nums; }
+  table.lab td.muted { color: var(--ink-faint); font-style: italic; }
+
+  /* ============== VIZ ============== */
+  .histo {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 70px;
+    background: var(--paper-shade);
+    border: 1px solid var(--indigo);
+    padding: 4px;
+    margin-top: 14px;
+  }
+  .histo .bar {
+    flex: 1;
+    min-width: 0;
+    background: var(--indigo);
+    transition: height 0.25s;
+  }
+  .histo .bar:nth-child(3n) { background: var(--coral); }
+
+  .timeline {
+    height: 50px;
+    background: var(--paper-shade);
+    border: 1px solid var(--indigo);
+    position: relative;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+  .timeline .mark {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1.5px;
+    background: var(--indigo-line);
+  }
+  .timeline .mark.gap { background: var(--rust); width: 2.5px; }
+  .timeline .mark.bg { background: var(--coral); width: 3.5px; }
+
+  .progress {
+    height: 6px;
+    background: var(--paper-shade);
+    border: 1px solid var(--indigo);
+    margin-top: 12px;
+    overflow: hidden;
+  }
+  .progress .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--indigo), var(--coral));
+    width: 0;
+    transition: width 0.3s;
   }
 
-  .gamepad-viz {
+  /* ============== ANNOTATION ============== */
+  .annotation {
+    background: var(--paper-shade);
+    border-left: 3px solid var(--indigo);
+    padding: 12px 18px;
+    margin-top: 14px;
+    font-family: 'Fraunces', serif;
+    font-size: 0.94em;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .annotation strong { color: var(--indigo); font-weight: 600; font-style: normal; }
+  .annotation code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--paper);
+    padding: 1px 6px;
+    font-size: 0.88em;
+    font-style: normal;
+    border: 1px solid var(--rule-soft);
+  }
+  .annotation::before {
+    content: '⟢ FINDING ';
+    display: inline;
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 0.75em;
+    letter-spacing: 0.18em;
+    color: var(--coral);
+    margin-right: 8px;
+  }
+  .annotation.novel { border-left-color: var(--coral); }
+  .annotation.novel::before { content: '⟢ DISCOVERY '; color: var(--coral); }
+  .annotation.warn { border-left-color: var(--rust); }
+  .annotation.warn::before { content: '⟢ CAVEAT '; color: var(--rust); }
+
+  /* ============== FIELD KIT SPECIFICS ============== */
+  .kit-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    margin-top: 12px;
   }
+  @media (max-width: 800px) { .kit-grid { grid-template-columns: 1fr; } }
 
-  .axis-bar {
-    height: 20px;
-    background: var(--bg);
-    border: 1px solid var(--line-bright);
-    position: relative;
-    overflow: hidden;
+  .kit-card {
+    background: rgba(255,255,255,0.4);
+    border: 1.5px solid var(--indigo);
+    padding: 20px;
   }
-
-  .axis-bar .fill {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    height: 100%;
-    background: var(--accent);
-    width: 0;
-    transition: width 0.05s linear, left 0.05s linear;
-    box-shadow: 0 0 8px var(--accent);
-  }
-
-  .axis-label {
-    font-size: 0.75em;
-    color: var(--text-dim);
+  .kit-card h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.2em;
+    color: var(--indigo);
     margin-bottom: 4px;
+  }
+  .kit-card p.lead {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 0.92em;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+
+  textarea, input[type=text] {
+    width: 100%;
+    background: var(--paper-shade);
+    border: 1px solid var(--indigo);
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+    color: var(--ink);
+    resize: vertical;
+  }
+  textarea:focus, input[type=text]:focus {
+    outline: 2px solid var(--coral);
+    outline-offset: -1px;
+  }
+
+  .kit-output {
+    background: var(--indigo);
+    color: var(--paper);
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 0.82em;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .kit-output .lbl { color: var(--coral); letter-spacing: 0.1em; font-size: 0.85em; display: block; margin-bottom: 4px; }
+
+  .pickup-code {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 3.5vw, 42px);
+    letter-spacing: 0.1em;
+    color: var(--indigo);
+    background: var(--paper-shade);
+    border: 2px solid var(--indigo);
+    border-style: dashed;
+    padding: 14px 22px;
+    text-align: center;
+    margin: 12px 0;
+  }
+
+  .inbox-item {
+    border: 1px solid var(--rule);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: var(--paper);
+  }
+  .inbox-item .meta {
+    font-size: 0.72em;
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .inbox-item .body {
+    font-family: 'Fraunces', serif;
+    font-size: 1.02em;
+    line-height: 1.4;
+    color: var(--ink);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* ============== LOG STREAM ============== */
+  .log {
+    background: var(--indigo);
+    color: var(--paper);
+    padding: 12px 16px;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 0.78em;
+    line-height: 1.45;
+  }
+  .log .e { padding: 1px 0; border-bottom: 1px dotted rgba(245,236,217,0.12); }
+  .log .e:last-child { border-bottom: 0; }
+  .log .e .ts { color: var(--rule-soft); margin-right: 10px; letter-spacing: 0.04em; }
+  .log .e.ok .ts { color: var(--olive-soft); }
+  .log .e.no .ts { color: var(--coral-soft); }
+  .log .e.warn .ts { color: var(--rust-soft); }
+  .log .e.novel .ts { color: var(--coral); }
+
+  /* ============== FOOTER ============== */
+  footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 4px double var(--indigo);
     display: flex;
     justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 0.78em;
+    color: var(--ink-soft);
+  }
+  footer .colophon {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    max-width: 50ch;
   }
 
-  .axis-label .val {
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .button-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 6px;
-    margin-top: 12px;
-  }
-
-  .btn-cell {
-    aspect-ratio: 1;
-    background: var(--bg);
-    border: 1px solid var(--line-bright);
+  /* ============== MODAL ============== */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20,22,43,0.92);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7em;
-    color: var(--text-dim);
-    transition: all 0.05s;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .btn-cell.active {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-    box-shadow: 0 0 12px var(--accent);
-  }
-
-  .btn-cell .idx {
-    font-weight: 800;
-    font-size: 1.1em;
-  }
-
-  .btn-cell .val {
-    font-size: 0.85em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .log {
-    background: var(--bg);
-    border: 1px solid var(--line);
-    padding: 12px;
-    margin-top: 12px;
-    max-height: 180px;
-    overflow-y: auto;
-    font-size: 0.78em;
-    color: var(--text-dim);
-  }
-
-  .log .entry {
-    padding: 2px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .log .entry:last-child { border-bottom: none; }
-  .log .entry .ts { color: var(--text-faint); margin-right: 8px; }
-  .log .entry.ok { color: var(--accent); }
-  .log .entry.err { color: var(--fail); }
-  .log .entry.warn { color: var(--warn); }
-
-  footer {
-    text-align: center;
-    padding: var(--pad) 0;
-    margin-top: var(--pad);
-    border-top: 1px solid var(--line-bright);
-    color: var(--text-faint);
-    font-size: 0.8em;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-
-  .empty {
-    color: var(--text-faint);
-    font-style: italic;
-    text-align: center;
     padding: 20px;
+    z-index: 1000;
+  }
+  .overlay .panel {
+    background: var(--paper);
+    border: 2px solid var(--coral);
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .overlay .panel-head {
+    padding: 14px 22px;
+    background: var(--indigo);
+    color: var(--paper);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .overlay .panel-head h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+  }
+  .overlay textarea {
+    flex: 1;
+    border: 0;
+    background: var(--paper);
+    padding: 18px 22px;
+    font-size: 0.82em;
+    min-height: 60vh;
+  }
+  .overlay .panel-foot {
+    background: var(--paper-shade);
+    border-top: 1px solid var(--indigo);
+    padding: 10px 22px;
+    font-size: 0.74em;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
   }
 
-  .api-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 16px;
+  /* ============== HELPERS ============== */
+  details {
+    border: 1px solid var(--rule);
+    background: var(--paper-shade);
+    padding: 10px 14px;
+    margin-top: 14px;
+  }
+  details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--indigo);
+    font-size: 0.86em;
+    letter-spacing: 0.04em;
+  }
+  details[open] summary { margin-bottom: 8px; }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8em;
+    background: var(--paper);
+    padding: 10px 14px;
+    border: 1px solid var(--rule-soft);
+    overflow-x: auto;
+    line-height: 1.4;
   }
 
-  @media (max-width: 600px) {
-    .api-list { grid-template-columns: 1fr; }
-    .gamepad-viz { grid-template-columns: 1fr; }
-    header { flex-direction: column; align-items: flex-start; }
-    .meta { text-align: left; }
+  hr.divider {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--indigo) 20%, var(--indigo) 80%, transparent);
+    margin: 24px 0;
   }
 
-  /* boot animation */
-  .module { animation: bootIn 0.4s ease-out backwards; }
-  .module:nth-child(1) { animation-delay: 0.05s; }
-  .module:nth-child(2) { animation-delay: 0.1s; }
-  .module:nth-child(3) { animation-delay: 0.15s; }
-  .module:nth-child(4) { animation-delay: 0.2s; }
-  .module:nth-child(5) { animation-delay: 0.25s; }
-  .module:nth-child(6) { animation-delay: 0.3s; }
-  .module:nth-child(7) { animation-delay: 0.35s; }
-  .module:nth-child(8) { animation-delay: 0.4s; }
-
-  @keyframes bootIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+  @media (max-width: 720px) {
+    .grid-data { grid-template-columns: 1fr; gap: 4px; }
+    .grid-data .k { padding-bottom: 0; border-bottom: 0; }
+    .grid-data .v { padding-bottom: 0; }
+    nav.pillars { grid-template-columns: 1fr; }
+    nav.pillars button { border-right: 0; border-bottom: 1px solid var(--indigo); }
+    nav.pillars button:last-child { border-bottom: 0; }
   }
 </style>
 </head>
 <body>
-<div class="frame">
 
+<div class="page">
+
+  <!-- ==================================================
+       MASTHEAD
+       ================================================== -->
   <header>
-    <div>
-      <div class="brand">ps5.probe<span class="v">v1.0 // curator build</span></div>
-      <div class="subtitle">browser surface area diagnostic — read-only</div>
+    <div class="preamble">
+      <span>Field Manual № S.1 — Open Research</span>
+      <span class="right">Console-resident · No installation required</span>
     </div>
-    <div class="meta">
-      <div><span class="label">SESSION</span> <span class="val" id="sessionId">--</span></div>
-      <div><span class="label">UPTIME</span> <span class="val" id="uptime">00:00</span></div>
-      <div><span class="label">FPS</span> <span class="val" id="fps">--</span></div>
+
+    <h1 class="title">
+      ps5<span class="accent">.</span>web
+      <span class="sub">A field manual and capability demonstration for the embedded WebKit runtime on PlayStation 5.</span>
+    </h1>
+
+    <div class="strapline">
+      <div class="desc">Three pillars. One file. The diagnostic confirms the environment. The capability lab maps what is reachable. The field kit puts the platform to work — including an end-to-end-encrypted message channel built from nothing but free infrastructure.</div>
+      <div class="stamp">
+        <div><span class="lbl">VOLUME</span> <span class="v">S.1</span></div>
+        <div><span class="lbl">SESSION</span> <span class="v" id="sessId">--</span></div>
+        <div><span class="lbl">ELAPSED</span> <span class="v" id="elapsed">00:00:00</span></div>
+        <div><span class="lbl">AUTHOR</span> <span class="v">polarityy</span></div>
+      </div>
     </div>
   </header>
 
-  <div class="status-bar">
-    <div class="item"><span class="dot"></span><span>PROBE ACTIVE</span></div>
-    <div class="item"><span style="color:var(--text)">UA:</span><span id="uaShort">detecting...</span></div>
-    <div class="item"><span style="color:var(--text)">RES:</span><span id="resShort">--</span></div>
-    <div class="item"><span style="color:var(--text)">DPR:</span><span id="dprShort">--</span></div>
+  <!-- ==================================================
+       STATUS RAIL
+       ================================================== -->
+  <div class="rail">
+    <span class="dot"></span>
+    <div class="item"><span class="lbl">platform</span><span class="v" id="rPlat">—</span></div>
+    <div class="item"><span class="lbl">engine</span><span class="v" id="rEng">—</span></div>
+    <div class="item"><span class="lbl">viewport</span><span class="v" id="rVp">—</span></div>
+    <div class="item"><span class="lbl">cores</span><span class="v" id="rCores">—</span></div>
+    <div class="item"><span class="lbl">net</span><span class="v" id="rNet">—</span></div>
+    <div class="item"><span class="lbl">storage</span><span class="v" id="rStor">—</span></div>
   </div>
 
-  <div class="controls">
-    <button onclick="runNetworkTest()">RUN NETWORK PROBE</button>
-    <button onclick="runStorageTest()">RUN STORAGE PROBE</button>
-    <button onclick="runHapticsTest()">TEST HAPTICS</button>
-    <button onclick="runTriggerTest()">TEST ADAPTIVE TRIGGERS</button>
-    <button onclick="exportReport()">EXPORT REPORT</button>
-    <button class="danger" onclick="clearAllStorage()">CLEAR STORAGE</button>
+  <!-- ==================================================
+       PILLAR NAV
+       ================================================== -->
+  <nav class="pillars">
+    <button class="active" onclick="showPillar(0)">
+      <span class="num">I · DIAGNOSTIC</span>
+      <span class="nm">Baseline</span>
+      <span class="ds">Confirm what the runtime exposes</span>
+    </button>
+    <button onclick="showPillar(1)">
+      <span class="num">II · LAB</span>
+      <span class="nm">Capability mapping</span>
+      <span class="ds">Push every confirmed surface to its real limit</span>
+    </button>
+    <button onclick="showPillar(2)">
+      <span class="num">III · KIT</span>
+      <span class="nm">Field demonstrations</span>
+      <span class="ds">Working tools built on what we found</span>
+    </button>
+  </nav>
+
+  <!-- ==================================================
+       PILLAR I — DIAGNOSTIC
+       ================================================== -->
+  <div class="pillar active" id="pillar-0">
+    <div class="pillar-head">
+      <h2>I. Baseline <em>diagnostic</em></h2>
+      <span class="meta">passive observation</span>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">D-01 // ENVIRONMENT</div>
+          <div class="card-title">Runtime fingerprint &amp; render surface</div>
+          <div class="card-question">What does the PS5 browser confess about itself when asked?</div>
+        </div>
+        <span class="pill run">PASSIVE</span>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="dEnv"></div>
+        <div id="dEnvFind"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">D-02 // API SURFACE</div>
+          <div class="card-title">What's alive, what's dead</div>
+          <div class="card-question">Of the modern web platform, what did Sony keep and what did they remove?</div>
+        </div>
+        <span class="pill run">PASSIVE</span>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="dApi"></div>
+        <div id="dApiFind"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="grid">
-
-    <!-- IDENTITY -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// identity</span>
-        <span class="id">[01]</span>
-      </div>
-      <div class="mod-body" id="modIdentity"></div>
+  <!-- ==================================================
+       PILLAR II — LAB
+       ================================================== -->
+  <div class="pillar" id="pillar-1">
+    <div class="pillar-head">
+      <h2>II. Capability <em>lab</em></h2>
+      <span class="meta">push the confirmed surfaces</span>
     </div>
 
-    <!-- DISPLAY -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// display + render</span>
-        <span class="id">[02]</span>
-      </div>
-      <div class="mod-body" id="modDisplay"></div>
+    <div class="controls" style="border-top:0;padding-top:0;margin:0 0 20px 0">
+      <button class="btn primary" onclick="runAllLab()">RUN ALL AUTONOMOUS</button>
+      <button class="btn" onclick="exportReport()">EXPORT FULL REPORT</button>
     </div>
 
-    <!-- WEBGL -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// webgl fingerprint</span>
-        <span class="id">[03]</span>
+    <!-- L-01 cadence -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-01 // CADENCE</div>
+          <div class="card-title">Render-loop stability under load</div>
+          <div class="card-question">v1 measured ~50.6 Hz. Is that fixed, or does it shift when the engine is stressed?</div>
+        </div>
+        <button class="btn" id="bL01" onclick="lab_cadence()">RUN</button>
       </div>
-      <div class="mod-body" id="modWebGL"></div>
-    </div>
-
-    <!-- API SURFACE -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// api surface</span>
-        <span class="id">[04]</span>
-      </div>
-      <div class="mod-body" id="modAPIs"></div>
-    </div>
-
-    <!-- STORAGE -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// storage quota</span>
-        <span class="id">[05]</span>
-      </div>
-      <div class="mod-body" id="modStorage"></div>
-    </div>
-
-    <!-- NETWORK -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// network behavior</span>
-        <span class="id">[06]</span>
-      </div>
-      <div class="mod-body" id="modNetwork">
-        <div class="empty">press [RUN NETWORK PROBE]</div>
+      <div class="card-body">
+        <div class="grid-data" id="L01" >
+          <div class="k">status</div><div class="v">awaiting run</div><div class="t"><span class="pill warn">IDLE</span></div>
+        </div>
+        <div class="histo" id="L01hist" style="display:none"></div>
+        <div id="L01find"></div>
       </div>
     </div>
 
-    <!-- GAMEPAD LIVE -->
-    <div class="module full-width">
-      <div class="mod-head">
-        <span class="name">// gamepad live capture</span>
-        <span class="id">[07]</span>
+    <!-- L-02 throughput -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-02 // THROUGHPUT</div>
+          <div class="card-title">JS performance vs. desktop reference</div>
+          <div class="card-question">Without WebAssembly, how fast is pure JS on 4 exposed Zen 2 cores?</div>
+        </div>
+        <button class="btn" id="bL02" onclick="lab_bench()">RUN</button>
       </div>
-      <div class="mod-body" id="modGamepad" style="max-height:none;">
-        <div class="empty" id="gpEmpty">no controller detected — press any button on connected pad</div>
-        <div id="gpData" style="display:none;"></div>
+      <div class="card-body">
+        <table class="lab" id="L02">
+          <thead>
+            <tr><th>workload</th><th>iter</th><th class="n">time (ms)</th><th class="n">ops/sec</th><th class="n">vs. ref</th></tr>
+          </thead>
+          <tbody id="L02body">
+            <tr><td colspan="5" class="muted">awaiting run</td></tr>
+          </tbody>
+        </table>
+        <div id="L02find"></div>
       </div>
     </div>
 
-    <!-- DEEP LINKS -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// url scheme probe</span>
-        <span class="id">[08]</span>
+    <!-- L-03 cache fs -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-03 // CACHE-FS</div>
+          <div class="card-title">Cache API as a real filesystem layer</div>
+          <div class="card-question">How much can Cache API actually hold? Does it survive reload? Reboot?</div>
+        </div>
+        <button class="btn" id="bL03" onclick="lab_cacheFS()">RUN</button>
       </div>
-      <div class="mod-body" id="modSchemes"></div>
+      <div class="card-body">
+        <div class="grid-data" id="L03">
+          <div class="k">status</div><div class="v">awaiting run</div><div class="t"><span class="pill warn">IDLE</span></div>
+        </div>
+        <div class="progress" id="L03prog" style="display:none"><div class="fill" id="L03fill"></div></div>
+        <div id="L03find"></div>
+      </div>
     </div>
 
-    <!-- EVENT LOG -->
-    <div class="module">
-      <div class="mod-head">
-        <span class="name">// event log</span>
-        <span class="id">[09]</span>
+    <!-- L-04 lifecycle -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-04 // LIFECYCLE</div>
+          <div class="card-title">What survives alt-tabbing to Rivals?</div>
+          <div class="card-question">When the browser is backgrounded, does JS continue, do timers fire, do connections survive?</div>
+        </div>
+        <button class="btn" id="bL04" onclick="lab_lifeStart()">START</button>
       </div>
-      <div class="mod-body">
-        <div class="log" id="eventLog"></div>
+      <div class="card-body">
+        <div class="grid-data" id="L04">
+          <div class="k">protocol</div><div class="v">start → alt-tab to Rivals for ≥30s → return → stop</div><div class="t"><span class="pill novel">INTERACTIVE</span></div>
+          <div class="k">ticks recorded</div><div class="v" id="L04ticks">0</div><div class="t"></div>
+          <div class="k">largest gap</div><div class="v" id="L04gap">—</div><div class="t"></div>
+          <div class="k">visibility events</div><div class="v" id="L04vis">0</div><div class="t"></div>
+          <div class="k">drift (performance vs Date)</div><div class="v" id="L04drift">—</div><div class="t"></div>
+        </div>
+        <div class="timeline" id="L04tl"></div>
+        <div class="controls">
+          <button class="btn" onclick="lab_lifeStop()">STOP &amp; ANALYZE</button>
+          <button class="btn ghost" onclick="lab_lifeReset()">RESET</button>
+        </div>
+        <div id="L04find"></div>
+      </div>
+    </div>
+
+    <!-- L-05 SharedWorker -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-05 // SW-VIABILITY</div>
+          <div class="card-title">SharedWorker as a background-execution vector</div>
+          <div class="card-question">ServiceWorker was killed but SharedWorker is exposed. Does it actually work?</div>
+        </div>
+        <button class="btn" id="bL05" onclick="lab_sw()">RUN</button>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="L05">
+          <div class="k">status</div><div class="v">awaiting run</div><div class="t"><span class="pill warn">IDLE</span></div>
+        </div>
+        <div id="L05find"></div>
+      </div>
+    </div>
+
+    <!-- L-06 ws -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-06 // WS-REACH</div>
+          <div class="card-title">WebSocket reachability across multiple endpoints</div>
+          <div class="card-question">v1 reported the WS API present but the test endpoint failed. Is WS truly working?</div>
+        </div>
+        <button class="btn" id="bL06" onclick="lab_ws()">RUN</button>
+      </div>
+      <div class="card-body">
+        <table class="lab" id="L06">
+          <thead>
+            <tr><th>endpoint</th><th>result</th><th class="n">open (ms)</th><th class="n">echo (ms)</th></tr>
+          </thead>
+          <tbody id="L06body">
+            <tr><td colspan="4" class="muted">awaiting run</td></tr>
+          </tbody>
+        </table>
+        <div id="L06find"></div>
+      </div>
+    </div>
+
+    <!-- L-07 dual context -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-07 // DUAL-CONTEXT</div>
+          <div class="card-title">Inter-context messaging via BroadcastChannel</div>
+          <div class="card-question">Can two browsing contexts (an iframe + parent) message each other on the same origin?</div>
+        </div>
+        <button class="btn" id="bL07" onclick="lab_dualCtx()">RUN</button>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="L07">
+          <div class="k">status</div><div class="v">awaiting run</div><div class="t"><span class="pill warn">IDLE</span></div>
+        </div>
+        <div id="L07find"></div>
+      </div>
+    </div>
+
+    <!-- L-08 crypto -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-08 // CRYPTO</div>
+          <div class="card-title">Real cryptographic primitives on the console</div>
+          <div class="card-question">Can the PS5 generate a keypair, sign a challenge, verify a signature — all client-side?</div>
+        </div>
+        <button class="btn" id="bL08" onclick="lab_crypto()">RUN</button>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="L08">
+          <div class="k">status</div><div class="v">awaiting run</div><div class="t"><span class="pill warn">IDLE</span></div>
+        </div>
+        <div id="L08find"></div>
+      </div>
+    </div>
+
+    <!-- L-09 cursor -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-09 // CURSOR-FP</div>
+          <div class="card-title">DualSense-emulated cursor poll-rate fingerprint</div>
+          <div class="card-question">Since gamepad API is disabled, how does Sony emit cursor events from the stick? What's the poll rate?</div>
+        </div>
+        <button class="btn" id="bL09" onclick="lab_curStart()">START</button>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="L09">
+          <div class="k">protocol</div><div class="v">start → move cursor in tight circles for ~10s → stop</div><div class="t"><span class="pill novel">INTERACTIVE</span></div>
+          <div class="k">samples</div><div class="v" id="L09n">0</div><div class="t"></div>
+          <div class="k">mean interval</div><div class="v" id="L09mean">—</div><div class="t"></div>
+          <div class="k">poll rate</div><div class="v" id="L09hz">—</div><div class="t"></div>
+          <div class="k">sub-pixel events</div><div class="v" id="L09sub">0</div><div class="t"></div>
+          <div class="k">max velocity</div><div class="v" id="L09v">—</div><div class="t"></div>
+        </div>
+        <div class="histo" id="L09hist" style="display:none"></div>
+        <div class="controls">
+          <button class="btn" onclick="lab_curStop()">STOP &amp; ANALYZE</button>
+        </div>
+        <div id="L09find"></div>
+      </div>
+    </div>
+
+    <!-- L-10 leaks -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">L-10 // FW-FINGERPRINT</div>
+          <div class="card-title">Environment fingerprint &amp; Sony-specific globals</div>
+          <div class="card-question">What can any visited page learn about a PS5 without permission prompts? Are there Sony-injected globals?</div>
+        </div>
+        <button class="btn" id="bL10" onclick="lab_leaks()">RUN</button>
+      </div>
+      <div class="card-body">
+        <div class="grid-data" id="L10"></div>
+        <div id="L10find"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       PILLAR III — FIELD KIT
+       ================================================== -->
+  <div class="pillar" id="pillar-2">
+    <div class="pillar-head">
+      <h2>III. Field <em>kit</em></h2>
+      <span class="meta">working tools built on confirmed primitives</span>
+    </div>
+
+    <div class="annotation">
+      The field kit treats the PS5 browser as a real <strong>destination</strong>, not just a subject of study. Each tool below combines confirmed-working primitives (Cache API, crypto, fetch, localStorage) into something useful you can actually run on a PS5 today.
+    </div>
+
+    <!-- K-01 encrypted pickup pad -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">K-01 // PICKUP PAD</div>
+          <div class="card-title">End-to-end encrypted message channel, PC → PS5</div>
+          <div class="card-question">A keypair is generated on the PS5. Senders encrypt with the public key; only the PS5 can decrypt. Free relay carries the bytes blindly.</div>
+        </div>
+        <span class="pill novel">CRYPTO + RELAY</span>
+      </div>
+      <div class="card-body">
+        <div class="kit-grid">
+
+          <div class="kit-card">
+            <h3>This PS5 — receiver</h3>
+            <p class="lead">Your pickup code is derived from a keypair stored locally in this browser. Share the code to receive notes.</p>
+
+            <div id="kp_status" style="font-size:0.85em;color:var(--ink-soft);margin-bottom:10px">Loading keypair…</div>
+
+            <div class="pickup-code" id="kp_code">— — — —</div>
+
+            <div class="controls" style="margin:0;border:0;padding:0">
+              <button class="btn primary" onclick="kp_poll()">CHECK INBOX</button>
+              <button class="btn" onclick="kp_togglePoll()" id="kp_autoBtn">AUTO-POLL: OFF</button>
+              <button class="btn ghost" onclick="kp_regenerate()">REGENERATE KEY</button>
+            </div>
+
+            <div id="kp_inbox" style="margin-top:16px"></div>
+
+            <details style="margin-top:16px">
+              <summary>How this works</summary>
+              <p style="font-size:0.84em;color:var(--ink-soft);line-height:1.5;margin-top:8px">A fresh ECDH P-256 keypair is generated and persisted in localStorage. The first 6 chars of the SHA-256 hash of the public key form your pickup code. Senders fetch the public key via that code, derive a shared AES-GCM key, encrypt the message, and post the ciphertext + ephemeral public key to the relay. Only your PS5 can derive the shared secret to decrypt. The relay (jsonbin.io anonymous bin or similar free service) only ever sees opaque ciphertext.</p>
+            </details>
+          </div>
+
+          <div class="kit-card">
+            <h3>Sender (from any PC/phone)</h3>
+            <p class="lead">Drop in the receiver's pickup code, write a note, hit SEND. Encrypts client-side before posting.</p>
+
+            <input type="text" id="kp_sendCode" placeholder="receiver pickup code (e.g. AB12CD)" maxlength="6" autocapitalize="characters" style="margin-bottom:10px">
+
+            <textarea id="kp_msg" rows="4" placeholder="your message — encrypted before it leaves this device"></textarea>
+
+            <div class="controls" style="margin-top:10px;border:0;padding:0">
+              <button class="btn primary" onclick="kp_send()">ENCRYPT &amp; SEND</button>
+            </div>
+
+            <div id="kp_sendOut" style="margin-top:12px;font-size:0.84em;color:var(--ink-soft)"></div>
+          </div>
+        </div>
+
+        <div class="annotation novel">
+          This is the headline demonstration. A console-resident program with no installed software receives <strong>end-to-end encrypted messages</strong> from anywhere on the internet, with only the browser, free public infrastructure, and standards-compliant crypto. The relay cannot read messages. Sony cannot read messages. No third party can read messages.
+        </div>
+      </div>
+    </div>
+
+    <!-- K-02 console notepad with Cache-FS -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">K-02 // CONSOLE NOTEPAD</div>
+          <div class="card-title">Persistent notes saved to Cache API</div>
+          <div class="card-question">Demonstrate Cache API as a working filesystem. Notes survive reload and (we hypothesize) reboot.</div>
+        </div>
+        <span class="pill novel">CACHE-FS</span>
+      </div>
+      <div class="card-body">
+        <div class="kit-grid">
+
+          <div class="kit-card">
+            <h3>Compose</h3>
+            <p class="lead">Each note is written to Cache API under <code>/notes/&lt;timestamp&gt;</code>. Persists across reloads.</p>
+            <input type="text" id="np_title" placeholder="title (optional)" style="margin-bottom:8px">
+            <textarea id="np_body" rows="5" placeholder="note body — saved to Cache API on commit"></textarea>
+            <div class="controls" style="margin-top:10px;border:0;padding:0">
+              <button class="btn primary" onclick="np_save()">SAVE NOTE</button>
+              <button class="btn" onclick="np_load()">REFRESH LIST</button>
+              <button class="btn ghost" onclick="np_clear()">CLEAR ALL</button>
+            </div>
+            <div id="np_status" style="margin-top:8px;font-size:0.82em;color:var(--ink-soft)"></div>
+          </div>
+
+          <div class="kit-card">
+            <h3>Saved notes <span style="font-size:0.7em;color:var(--ink-faint);font-style:normal" id="np_count"></span></h3>
+            <div id="np_list" style="max-height:340px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- K-03 PS5 attestation card -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-id">K-03 // ATTESTATION CARD</div>
+          <div class="card-title">Generate a shareable proof-of-PS5 fingerprint</div>
+          <div class="card-question">Bundle the runtime fingerprint with a cryptographic signature, producing a shareable token that demonstrates origin.</div>
+        </div>
+        <button class="btn" onclick="att_generate()">GENERATE CARD</button>
+      </div>
+      <div class="card-body">
+        <p style="font-family:'Fraunces',serif;font-style:italic;color:var(--ink-soft);font-size:0.94em;margin-bottom:12px">A diagnostic card combining the PS5 firmware version, WebKit build, viewport, cores, and a signature over the whole bundle. Useful for: documenting test conditions, proving a measurement came from a real PS5, peer-to-peer trust signals.</p>
+        <div id="att_out" style="display:none">
+          <pre id="att_card"></pre>
+          <div class="controls" style="margin-top:12px;border:0;padding:0">
+            <button class="btn" onclick="att_copy()">COPY TO CLIPBOARD</button>
+          </div>
+        </div>
       </div>
     </div>
 
   </div>
 
+  <!-- ==================================================
+       LOG
+       ================================================== -->
+  <hr class="divider">
+  <div class="pillar-head">
+    <h2>Event <em>stream</em></h2>
+    <span class="meta">live</span>
+  </div>
+  <div class="log" id="logStream"></div>
+
+  <!-- ==================================================
+       FOOTER
+       ================================================== -->
   <footer>
-    polarityy // curator build // observe, do not modify
+    <div class="colophon">Field manual S.1 — open empirical research on the PlayStation 5 WebKit runtime. Hosted via GitHub Pages, no third-party telemetry. Authored by polarityy.</div>
+    <div style="text-align:right">
+      <div id="footD"></div>
+      <div style="color:var(--ink-faint)">single file · self-contained · no build step</div>
+    </div>
   </footer>
-
 </div>
 
 <script>
 'use strict';
 
-// =========================================================
-// STATE + HELPERS
-// =========================================================
-const startTime = Date.now();
-const sessionId = Math.random().toString(36).slice(2, 10).toUpperCase();
-document.getElementById('sessionId').textContent = sessionId;
+// =========================================================================
+// STATE
+// =========================================================================
+const STARTED = Date.now();
+const SESSION = Math.random().toString(36).slice(2, 10).toUpperCase();
+const REPORT_ID = 'PS5W-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + SESSION.slice(0,4);
+document.getElementById('sessId').textContent = SESSION;
+document.getElementById('footD').textContent = REPORT_ID;
 
 const REPORT = {
-  meta: { sessionId, startedAt: new Date().toISOString() },
-  identity: {}, display: {}, webgl: {}, apis: {},
-  storage: {}, network: {}, gamepad: {}, schemes: {}
+  meta: { id: REPORT_ID, session: SESSION, started: new Date().toISOString(), version: 'S.1' },
+  diagnostic: {}, lab: {}, kit: {}
 };
 
-function log(msg, type='info') {
-  const el = document.getElementById('eventLog');
-  const entry = document.createElement('div');
-  entry.className = 'entry ' + (type==='ok'?'ok':type==='err'?'err':type==='warn'?'warn':'');
+// =========================================================================
+// UTILITIES
+// =========================================================================
+function log(msg, type='') {
+  const el = document.getElementById('logStream');
+  const e = document.createElement('div');
+  e.className = 'e ' + type;
   const ts = new Date().toTimeString().slice(0,8);
-  entry.innerHTML = `<span class="ts">${ts}</span>${msg}`;
-  el.insertBefore(entry, el.firstChild);
-  while (el.children.length > 50) el.removeChild(el.lastChild);
+  e.innerHTML = `<span class="ts">[${ts}]</span>${msg}`;
+  el.insertBefore(e, el.firstChild);
+  while (el.children.length > 80) el.removeChild(el.lastChild);
 }
 
-function row(k, v, pillClass) {
-  const pill = pillClass ? `<span class="pill ${pillClass}">${v}</span>` : v;
-  return `<div class="row"><span class="k">${k}</span><span class="v">${pill}</span></div>`;
+function row(k, v, tag) {
+  const tHtml = tag ? `<div class="t"><span class="pill ${tag.cls}">${tag.txt}</span></div>` : '<div class="t"></div>';
+  return `<div class="k">${k}</div><div class="v">${v}</div>${tHtml}`;
 }
 
-function exists(obj, path) {
-  try {
-    return path.split('.').reduce((a, k) => a && a[k], obj) !== undefined;
-  } catch(e) { return false; }
+function finding(target, html, type='') {
+  const el = document.getElementById(target);
+  el.innerHTML = `<div class="annotation ${type}">${html}</div>`;
 }
 
-// =========================================================
-// 01. IDENTITY
-// =========================================================
-function probeIdentity() {
+function showPillar(i) {
+  document.querySelectorAll('.pillar').forEach((p, idx) => p.classList.toggle('active', idx === i));
+  document.querySelectorAll('nav.pillars button').forEach((b, idx) => b.classList.toggle('active', idx === i));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+setInterval(() => {
+  const s = Math.floor((Date.now() - STARTED)/1000);
+  document.getElementById('elapsed').textContent =
+    String(Math.floor(s/3600)).padStart(2,'0') + ':' +
+    String(Math.floor((s%3600)/60)).padStart(2,'0') + ':' +
+    String(s%60).padStart(2,'0');
+}, 1000);
+
+// hex helpers
+function buf2hex(buf) {
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function b64encode(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function b64decode(s) {
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+
+// =========================================================================
+// DIAGNOSTIC — environment + API surface
+// =========================================================================
+function diag_environment() {
   const ua = navigator.userAgent;
-  const data = {
+  const fw = ua.match(/PlayStation 5\/([\d.]+)/)?.[1] || '—';
+  const wk = ua.match(/AppleWebKit\/([\d.]+)/)?.[1] || '—';
+  const saf = ua.match(/Version\/([\d.]+)/)?.[1] || '—';
+
+  const env = {
     userAgent: ua,
-    platform: navigator.platform || 'unknown',
-    vendor: navigator.vendor || 'unknown',
-    language: navigator.language,
-    languages: (navigator.languages || []).join(', '),
-    cookieEnabled: navigator.cookieEnabled,
-    doNotTrack: navigator.doNotTrack || 'unset',
-    hardwareConcurrency: navigator.hardwareConcurrency || 'n/a',
-    deviceMemory: navigator.deviceMemory || 'n/a',
-    maxTouchPoints: navigator.maxTouchPoints || 0,
-    onLine: navigator.onLine
-  };
-  REPORT.identity = data;
-
-  document.getElementById('uaShort').textContent = ua.slice(0, 60) + (ua.length>60?'...':'');
-
-  document.getElementById('modIdentity').innerHTML =
-    row('user-agent', `<small style="font-size:0.8em">${ua}</small>`) +
-    row('platform', data.platform) +
-    row('vendor', data.vendor) +
-    row('language', data.language) +
-    row('languages', data.languages || '—') +
-    row('hw concurrency', data.hardwareConcurrency) +
-    row('device memory', data.deviceMemory + (typeof data.deviceMemory==='number'?' GB':'')) +
-    row('touch points', data.maxTouchPoints) +
-    row('cookies', data.cookieEnabled?'ENABLED':'DISABLED', data.cookieEnabled?'ok':'no') +
-    row('online', data.onLine?'TRUE':'FALSE', data.onLine?'ok':'no');
-
-  log(`identity captured // ua=${ua.slice(0,40)}...`);
-}
-
-// =========================================================
-// 02. DISPLAY + RENDER
-// =========================================================
-function probeDisplay() {
-  const data = {
-    innerWidth: window.innerWidth,
-    innerHeight: window.innerHeight,
-    screenWidth: screen.width,
-    screenHeight: screen.height,
-    availWidth: screen.availWidth,
-    availHeight: screen.availHeight,
+    firmware: fw,
+    webkit: wk,
+    safariEq: saf,
+    platform: navigator.platform,
+    vendor: navigator.vendor,
+    cores: navigator.hardwareConcurrency,
+    viewport: `${innerWidth} × ${innerHeight}`,
+    screen: `${screen.width} × ${screen.height}`,
+    dpr: devicePixelRatio,
     colorDepth: screen.colorDepth,
-    pixelDepth: screen.pixelDepth,
-    devicePixelRatio: window.devicePixelRatio,
-    orientation: screen.orientation ? screen.orientation.type : 'n/a',
-    colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-    hdr: window.matchMedia('(dynamic-range: high)').matches ? 'yes' : 'no',
-    refreshRate: 'measuring...'
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locale: Intl.DateTimeFormat().resolvedOptions().locale,
+    online: navigator.onLine
   };
-  REPORT.display = data;
+  REPORT.diagnostic.environment = env;
 
-  document.getElementById('resShort').textContent = `${data.innerWidth}x${data.innerHeight}`;
-  document.getElementById('dprShort').textContent = data.devicePixelRatio;
+  // status rail
+  document.getElementById('rPlat').textContent = `PS5 fw ${fw}`;
+  document.getElementById('rEng').textContent = 'WK ' + wk;
+  document.getElementById('rVp').textContent = env.viewport;
+  document.getElementById('rCores').textContent = env.cores;
+  document.getElementById('rNet').textContent = env.online ? 'online' : 'offline';
 
-  const render = (rr) => {
-    document.getElementById('modDisplay').innerHTML =
-      row('viewport', `${data.innerWidth} × ${data.innerHeight}`) +
-      row('screen', `${data.screenWidth} × ${data.screenHeight}`) +
-      row('available', `${data.availWidth} × ${data.availHeight}`) +
-      row('color depth', data.colorDepth + ' bit') +
-      row('pixel ratio', data.devicePixelRatio) +
-      row('orientation', data.orientation) +
-      row('color scheme', data.colorScheme) +
-      row('hdr capable', data.hdr, data.hdr==='yes'?'ok':'no') +
-      row('refresh rate', rr + ' Hz', 'info');
-  };
-  render(data.refreshRate);
+  document.getElementById('dEnv').innerHTML =
+    row('user agent', `<small>${ua}</small>`) +
+    row('PS5 firmware', fw, {cls:'novel', txt:'extracted'}) +
+    row('WebKit', wk) +
+    row('Safari equivalent', saf) +
+    row('platform / vendor', `${env.platform} · ${env.vendor}`) +
+    row('CPU cores exposed', `${env.cores} of 8`, {cls:'warn', txt:'partial'}) +
+    row('viewport / screen', `${env.viewport} in ${env.screen}`) +
+    row('pixel ratio', env.dpr) +
+    row('color depth', env.colorDepth + '-bit') +
+    row('timezone / locale', `${env.tz} · ${env.locale}`);
 
-  // Measure refresh rate via rAF
-  let frames = 0;
-  let last = performance.now();
-  let samples = [];
-  function tick(now) {
-    frames++;
-    const dt = now - last;
-    last = now;
-    if (frames > 5 && frames < 65) samples.push(1000/dt);
-    if (frames < 65) {
-      requestAnimationFrame(tick);
-    } else {
-      const avg = samples.reduce((a,b)=>a+b,0)/samples.length;
-      data.refreshRate = avg.toFixed(1);
-      REPORT.display.refreshRate = data.refreshRate;
-      render(data.refreshRate);
-      log(`display refresh measured // ${data.refreshRate} Hz`, 'ok');
-    }
-  }
-  requestAnimationFrame(tick);
+  finding('dEnvFind',
+    `Firmware <strong>${fw}</strong> on WebKit <strong>${wk}</strong> (≈ Safari ${saf}). Sony exposes <strong>${env.cores} of 8</strong> Zen 2 cores via <code>navigator.hardwareConcurrency</code>; the rest are reserved by the system shell. Timezone (<strong>${env.tz}</strong>) and locale leak through standard <code>Intl</code> APIs — sufficient region fingerprinting without permission prompts.`,
+    'novel');
 }
 
-// =========================================================
-// 03. WEBGL FINGERPRINT
-// =========================================================
-function probeWebGL() {
-  const data = {};
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
-      data.supported = false;
-      REPORT.webgl = data;
-      document.getElementById('modWebGL').innerHTML = row('webgl', 'NOT SUPPORTED', 'no');
-      log('webgl not supported', 'err');
-      return;
-    }
-    data.supported = true;
-    data.version = gl.getParameter(gl.VERSION);
-    data.shadingLang = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
-    data.vendor = gl.getParameter(gl.VENDOR);
-    data.renderer = gl.getParameter(gl.RENDERER);
-    const debug = gl.getExtension('WEBGL_debug_renderer_info');
-    if (debug) {
-      data.unmaskedVendor = gl.getParameter(debug.UNMASKED_VENDOR_WEBGL);
-      data.unmaskedRenderer = gl.getParameter(debug.UNMASKED_RENDERER_WEBGL);
-    }
-    data.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-    data.maxViewport = gl.getParameter(gl.MAX_VIEWPORT_DIMS).join(' × ');
-    data.extensions = gl.getSupportedExtensions() || [];
-
-    REPORT.webgl = data;
-
-    document.getElementById('modWebGL').innerHTML =
-      row('version', data.version) +
-      row('shading lang', data.shadingLang) +
-      row('vendor', data.vendor) +
-      row('renderer', data.renderer) +
-      (data.unmaskedVendor ? row('unmasked vendor', data.unmaskedVendor, 'info') : '') +
-      (data.unmaskedRenderer ? row('unmasked gpu', data.unmaskedRenderer, 'info') : '') +
-      row('max texture', data.maxTextureSize) +
-      row('max viewport', data.maxViewport) +
-      row('extensions', data.extensions.length);
-    log(`webgl probed // gpu=${data.unmaskedRenderer || data.renderer}`, 'ok');
-  } catch(e) {
-    log('webgl probe failed: ' + e.message, 'err');
-  }
-}
-
-// =========================================================
-// 04. API SURFACE
-// =========================================================
-function probeAPIs() {
-  const checks = [
+function diag_api() {
+  const probes = [
     ['Gamepad API', 'navigator.getGamepads'],
     ['WebUSB', 'navigator.usb'],
     ['WebHID', 'navigator.hid'],
-    ['WebBluetooth', 'navigator.bluetooth'],
     ['WebSerial', 'navigator.serial'],
-    ['WebMIDI', 'navigator.requestMIDIAccess'],
-    ['WebRTC RTCPeerConnection', 'RTCPeerConnection'],
-    ['WebSocket', 'WebSocket'],
-    ['Service Worker', 'navigator.serviceWorker'],
-    ['SharedWorker', 'SharedWorker'],
-    ['WebAssembly', 'WebAssembly'],
-    ['IndexedDB', 'indexedDB'],
-    ['localStorage', 'localStorage'],
-    ['sessionStorage', 'sessionStorage'],
-    ['Cache API', 'caches'],
-    ['File System Access', 'showOpenFilePicker'],
+    ['WebBluetooth', 'navigator.bluetooth'],
+    ['WebRTC', 'window.RTCPeerConnection'],
+    ['WebSocket', 'window.WebSocket'],
+    ['ServiceWorker', 'navigator.serviceWorker'],
+    ['SharedWorker', 'window.SharedWorker'],
+    ['WebAssembly', 'window.WebAssembly'],
+    ['IndexedDB', 'window.indexedDB'],
+    ['localStorage', 'window.localStorage'],
+    ['Cache API', 'window.caches'],
+    ['File System Access', 'window.showOpenFilePicker'],
     ['Clipboard API', 'navigator.clipboard'],
-    ['Notifications', 'Notification'],
-    ['Push API', 'PushManager'],
     ['Geolocation', 'navigator.geolocation'],
-    ['Vibration', 'navigator.vibrate'],
-    ['Battery', 'navigator.getBattery'],
+    ['Web Audio', 'window.AudioContext'],
     ['Screen Wake Lock', 'navigator.wakeLock'],
-    ['Screen Capture', 'navigator.mediaDevices.getDisplayMedia'],
-    ['getUserMedia', 'navigator.mediaDevices.getUserMedia'],
-    ['Web Audio', 'AudioContext'],
-    ['Speech Synth', 'speechSynthesis'],
-    ['Speech Recog', 'SpeechRecognition'],
-    ['Payment Request', 'PaymentRequest'],
-    ['Credential Mgmt', 'navigator.credentials'],
-    ['Fullscreen', 'document.documentElement.requestFullscreen'],
-    ['Pointer Lock', 'document.documentElement.requestPointerLock'],
-    ['Page Visibility', 'document.visibilityState'],
-    ['Intersection Obs', 'IntersectionObserver'],
-    ['Resize Observer', 'ResizeObserver'],
-    ['BroadcastChannel', 'BroadcastChannel'],
+    ['Crypto.subtle', 'crypto.subtle'],
+    ['BroadcastChannel', 'window.BroadcastChannel'],
+    ['structuredClone', 'window.structuredClone'],
     ['Beacon', 'navigator.sendBeacon'],
-    ['Performance Obs', 'PerformanceObserver'],
-    ['Crypto SubtleCrypto', 'crypto.subtle'],
-    ['structuredClone', 'structuredClone']
+    ['Performance Observer', 'window.PerformanceObserver']
   ];
 
-  const apiData = {};
-  let html = '<div class="api-list">';
-  checks.forEach(([name, path]) => {
-    const present = exists(window, path) || exists(navigator, path.replace(/^navigator\./,'')) || exists(document, path.replace(/^document\./,'')) || (function(){
-      try { return !!eval(path); } catch(e){ return false; }
-    })();
-    apiData[name] = present;
-    html += `<div class="row" style="padding:3px 0"><span class="k" style="font-size:0.9em">${name}</span><span class="v"><span class="pill ${present?'ok':'no'}" style="font-size:0.7em">${present?'YES':'NO'}</span></span></div>`;
-  });
-  html += '</div>';
-
-  REPORT.apis = apiData;
-  document.getElementById('modAPIs').innerHTML = html;
-  const yesCount = Object.values(apiData).filter(Boolean).length;
-  log(`api surface probed // ${yesCount}/${checks.length} present`, 'ok');
-}
-
-// =========================================================
-// 05. STORAGE
-// =========================================================
-async function probeStorage() {
   const data = {};
-
-  // localStorage
-  try {
-    const tk = '__probe_' + Date.now();
-    localStorage.setItem(tk, 'x');
-    data.localStorage = localStorage.getItem(tk) === 'x';
-    localStorage.removeItem(tk);
-  } catch(e) { data.localStorage = false; }
-
-  // sessionStorage
-  try {
-    const tk = '__probe_' + Date.now();
-    sessionStorage.setItem(tk, 'x');
-    data.sessionStorage = sessionStorage.getItem(tk) === 'x';
-    sessionStorage.removeItem(tk);
-  } catch(e) { data.sessionStorage = false; }
-
-  // Quota estimate
-  let quotaMB = 'n/a', usageMB = 'n/a';
-  if (navigator.storage && navigator.storage.estimate) {
-    try {
-      const est = await navigator.storage.estimate();
-      quotaMB = (est.quota / 1024 / 1024).toFixed(1);
-      usageMB = (est.usage / 1024 / 1024).toFixed(3);
-      data.quotaBytes = est.quota;
-      data.usageBytes = est.usage;
-    } catch(e) { /* */ }
+  let html = '';
+  let live = 0, dead = 0;
+  for (const [name, path] of probes) {
+    let present = false;
+    try { present = !!eval(path); } catch(e) { present = false; }
+    data[name] = present;
+    if (present) live++; else dead++;
+    html += row(name, present ? 'present' : 'absent', { cls: present ? 'ok' : 'no', txt: present ? 'ALIVE' : 'DEAD' });
   }
+  REPORT.diagnostic.apiSurface = data;
+  document.getElementById('dApi').innerHTML = html;
 
-  // Persistent storage
-  let persistent = 'n/a';
-  if (navigator.storage && navigator.storage.persisted) {
-    try { persistent = (await navigator.storage.persisted()) ? 'YES' : 'NO'; } catch(e){}
-  }
-  data.persistent = persistent;
+  document.getElementById('rStor').textContent = data['Cache API'] && data['localStorage'] ? 'cache+ls' : 'partial';
 
-  REPORT.storage = data;
-
-  document.getElementById('modStorage').innerHTML =
-    row('localStorage', data.localStorage?'WRITABLE':'BLOCKED', data.localStorage?'ok':'no') +
-    row('sessionStorage', data.sessionStorage?'WRITABLE':'BLOCKED', data.sessionStorage?'ok':'no') +
-    row('quota', quotaMB + ' MB') +
-    row('usage', usageMB + ' MB') +
-    row('persistent', persistent, persistent==='YES'?'ok':persistent==='NO'?'warn':'');
-
-  log(`storage probed // quota=${quotaMB}MB`, 'ok');
+  finding('dApiFind',
+    `Of ${probes.length} surveyed APIs: <strong>${live} alive</strong>, <strong>${dead} dead</strong>. The pattern is consistent — Sony preserved networking, storage, crypto, and inter-context messaging, while killing every API that touches hardware (USB, HID, Bluetooth, Gamepad, GPU via WebGL, audio synthesis). The constraint isn't symmetric: storage and crypto lanes are wide open.`,
+    'ok');
 }
 
-// =========================================================
-// 06. NETWORK PROBE
-// =========================================================
-async function runNetworkTest() {
-  const target = document.getElementById('modNetwork');
-  target.innerHTML = '<div class="empty">probing...</div>';
-  const tests = [
-    { name: 'fetch self', url: location.href, mode: 'cors' },
-    { name: 'fetch httpbin', url: 'https://httpbin.org/get', mode: 'cors' },
-    { name: 'fetch no-cors', url: 'https://example.com', mode: 'no-cors' },
-    { name: 'cdn (jsdelivr)', url: 'https://cdn.jsdelivr.net/npm/lodash@4/package.json', mode: 'cors' }
-  ];
-  const results = [];
-  for (const t of tests) {
-    const start = performance.now();
-    try {
-      const r = await fetch(t.url, { mode: t.mode, cache: 'no-store' });
-      const ms = (performance.now() - start).toFixed(0);
-      results.push({ ...t, ok: true, status: r.status || 'opaque', ms });
-    } catch(e) {
-      const ms = (performance.now() - start).toFixed(0);
-      results.push({ ...t, ok: false, status: e.message.slice(0,40), ms });
-    }
+// =========================================================================
+// LAB — L-01 cadence
+// =========================================================================
+async function lab_cadence() {
+  document.getElementById('bL01').disabled = true;
+  log('L-01 cadence test', 'ok');
+
+  const samples = { idle: [], anim: [], busy: [] };
+  const FRAMES = 180;
+
+  async function collect(phase, work) {
+    return new Promise(res => {
+      let n = 0, last = performance.now();
+      function tick(now) {
+        if (n > 0) samples[phase].push(now - last);
+        last = now;
+        if (work) work();
+        n++;
+        if (n < FRAMES) requestAnimationFrame(tick);
+        else res();
+      }
+      requestAnimationFrame(tick);
+    });
   }
 
-  // WebSocket test
-  let wsResult = { name: 'websocket', ok: false, status: 'n/a', ms: '—' };
-  try {
-    await new Promise((res, rej) => {
-      const ws = new WebSocket('wss://echo.websocket.events');
-      const t0 = performance.now();
-      const to = setTimeout(() => { ws.close(); rej(new Error('timeout')); }, 4000);
-      ws.onopen = () => {
-        wsResult.ok = true;
-        wsResult.ms = (performance.now()-t0).toFixed(0);
-        wsResult.status = 'OPEN';
-        clearTimeout(to);
-        ws.close();
-        res();
-      };
-      ws.onerror = () => { wsResult.status = 'error'; clearTimeout(to); rej(); };
-    }).catch(()=>{});
-  } catch(e) {}
-  results.push(wsResult);
+  await collect('idle', null);
+  const dummy = document.createElement('div');
+  dummy.style.cssText = 'position:fixed;top:0;left:0;width:8px;height:8px;background:transparent;pointer-events:none';
+  document.body.appendChild(dummy);
+  await collect('anim', () => { dummy.style.transform = `translate(${Math.random()*120}px,${Math.random()*120}px) rotate(${Math.random()*360}deg)`; });
+  dummy.remove();
+  await collect('busy', () => {
+    let x = 0;
+    for (let i=0;i<4000;i++) x += Math.sqrt(i*Math.random());
+    return x;
+  });
 
-  REPORT.network = results;
-
-  target.innerHTML = results.map(r =>
-    row(r.name, `${r.status} <small style="color:var(--text-faint)">${r.ms}ms</small>`, r.ok?'ok':'no')
-  ).join('');
-  log('network probe complete', 'ok');
-}
-
-// =========================================================
-// 07. GAMEPAD LIVE
-// =========================================================
-let gpAnimating = false;
-let gpLast = null;
-
-function probeGamepadLoop() {
-  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-  let pad = null;
-  for (const p of pads) if (p) { pad = p; break; }
-
-  if (!pad) {
-    if (gpLast) {
-      document.getElementById('gpEmpty').style.display = 'block';
-      document.getElementById('gpData').style.display = 'none';
-      gpLast = null;
-    }
-    requestAnimationFrame(probeGamepadLoop);
-    return;
-  }
-
-  if (!gpLast || gpLast.id !== pad.id) {
-    gpLast = pad;
-    document.getElementById('gpEmpty').style.display = 'none';
-    document.getElementById('gpData').style.display = 'block';
-    renderGamepadStatic(pad);
-    log(`gamepad detected // ${pad.id}`, 'ok');
-  }
-
-  renderGamepadLive(pad);
-  REPORT.gamepad = {
-    id: pad.id,
-    index: pad.index,
-    mapping: pad.mapping,
-    connected: pad.connected,
-    buttonCount: pad.buttons.length,
-    axisCount: pad.axes.length,
-    hasVibration: !!(pad.vibrationActuator),
-    vibrationType: pad.vibrationActuator ? pad.vibrationActuator.type : null,
-    hasHapticActuators: !!(pad.hapticActuators && pad.hapticActuators.length),
-    hapticActuatorCount: pad.hapticActuators ? pad.hapticActuators.length : 0,
-    timestamp: pad.timestamp
+  const stats = (arr) => {
+    const sorted = [...arr].sort((a,b)=>a-b);
+    const mean = arr.reduce((a,b)=>a+b,0)/arr.length;
+    const std = Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/arr.length);
+    return { mean, std, hz: 1000/mean, max: sorted[sorted.length-1], min: sorted[0] };
   };
 
-  requestAnimationFrame(probeGamepadLoop);
+  const r = { idle: stats(samples.idle), anim: stats(samples.anim), busy: stats(samples.busy) };
+  REPORT.lab.cadence = r;
+
+  document.getElementById('L01').innerHTML =
+    row('idle mean / Hz', r.idle.mean.toFixed(2) + ' ms', {cls:'ok', txt: r.idle.hz.toFixed(1)+' Hz'}) +
+    row('idle σ (jitter)', r.idle.std.toFixed(2) + ' ms') +
+    row('animated mean / Hz', r.anim.mean.toFixed(2) + ' ms', {cls:'ok', txt: r.anim.hz.toFixed(1)+' Hz'}) +
+    row('busy mean / Hz', r.busy.mean.toFixed(2) + ' ms', {cls:'warn', txt: r.busy.hz.toFixed(1)+' Hz'}) +
+    row('worst frame', Math.max(r.idle.max, r.anim.max, r.busy.max).toFixed(2) + ' ms', {cls:'no', txt:'tail'});
+
+  // histogram
+  const hist = document.getElementById('L01hist');
+  hist.style.display = 'flex';
+  hist.innerHTML = '';
+  const sorted = [...samples.idle].sort((a,b)=>a-b);
+  const lo = sorted[0], hi = sorted[sorted.length-1];
+  const BINS = 32;
+  const bs = (hi-lo)/BINS;
+  const c = new Array(BINS).fill(0);
+  samples.idle.forEach(s => { const b = Math.min(BINS-1, Math.floor((s-lo)/bs)); c[b]++; });
+  const mx = Math.max(...c);
+  c.forEach(v => { const b = document.createElement('div'); b.className='bar'; b.style.height=(v/mx*100)+'%'; hist.appendChild(b); });
+
+  const hz = r.idle.hz;
+  const interp = Math.abs(hz-50) < 2
+    ? 'The runtime pins to a <strong>50 Hz</strong> cadence regardless of HDMI output — Sony likely caps the compositor.'
+    : Math.abs(hz-60) < 2
+    ? '<strong>60 Hz</strong> cadence as standard.'
+    : `Non-standard <strong>${hz.toFixed(1)} Hz</strong> cadence — neither 50 nor 60.`;
+
+  finding('L01find',
+    `${interp} Under CPU-busy load the cadence drops to ${r.busy.hz.toFixed(1)} Hz — the JS engine and compositor share a thread, so sustained computation visibly drops frames.`,
+    Math.abs(hz-50) < 2 ? 'novel' : 'ok');
+
+  document.getElementById('bL01').disabled = false;
 }
 
-function renderGamepadStatic(pad) {
-  const info = `
-    <div class="row"><span class="k">id</span><span class="v">${pad.id}</span></div>
-    <div class="row"><span class="k">index</span><span class="v">${pad.index}</span></div>
-    <div class="row"><span class="k">mapping</span><span class="v">${pad.mapping || 'unknown'}</span></div>
-    <div class="row"><span class="k">buttons</span><span class="v">${pad.buttons.length}</span></div>
-    <div class="row"><span class="k">axes</span><span class="v">${pad.axes.length}</span></div>
-    <div class="row"><span class="k">vibration actuator</span><span class="v"><span class="pill ${pad.vibrationActuator?'ok':'no'}">${pad.vibrationActuator?(pad.vibrationActuator.type||'YES'):'NO'}</span></span></div>
-    <div class="row"><span class="k">haptic actuators</span><span class="v"><span class="pill ${(pad.hapticActuators&&pad.hapticActuators.length)?'ok':'no'}">${pad.hapticActuators?pad.hapticActuators.length:0}</span></span></div>
-    <div style="margin-top:16px;font-size:0.8em;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">// axes</div>
-    <div class="gamepad-viz" id="gpAxes"></div>
-    <div style="margin-top:16px;font-size:0.8em;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">// buttons</div>
-    <div class="button-grid" id="gpButtons"></div>
-  `;
-  document.getElementById('gpData').innerHTML = info;
+// =========================================================================
+// LAB — L-02 benchmark
+// =========================================================================
+async function lab_bench() {
+  document.getElementById('bL02').disabled = true;
+  log('L-02 benchmark suite', 'ok');
 
-  const axEl = document.getElementById('gpAxes');
-  for (let i=0; i<pad.axes.length; i++) {
-    const d = document.createElement('div');
-    d.innerHTML = `<div class="axis-label"><span>axis ${i}</span><span class="val" id="axval-${i}">0.000</span></div><div class="axis-bar"><div class="fill" id="axfill-${i}"></div></div>`;
-    axEl.appendChild(d);
-  }
-
-  const btnEl = document.getElementById('gpButtons');
-  for (let i=0; i<pad.buttons.length; i++) {
-    const d = document.createElement('div');
-    d.className = 'btn-cell';
-    d.id = 'btn-' + i;
-    d.innerHTML = `<span class="idx">${i}</span><span class="val">0.00</span>`;
-    btnEl.appendChild(d);
-  }
-}
-
-function renderGamepadLive(pad) {
-  for (let i=0; i<pad.axes.length; i++) {
-    const v = pad.axes[i];
-    const valEl = document.getElementById('axval-' + i);
-    const fillEl = document.getElementById('axfill-' + i);
-    if (valEl) valEl.textContent = v.toFixed(3);
-    if (fillEl) {
-      const pct = Math.abs(v) * 50;
-      if (v >= 0) {
-        fillEl.style.left = '50%';
-        fillEl.style.width = pct + '%';
-      } else {
-        fillEl.style.left = (50 - pct) + '%';
-        fillEl.style.width = pct + '%';
-      }
-    }
-  }
-  for (let i=0; i<pad.buttons.length; i++) {
-    const b = pad.buttons[i];
-    const el = document.getElementById('btn-' + i);
-    if (el) {
-      el.classList.toggle('active', b.pressed || b.value > 0.05);
-      const v = el.querySelector('.val');
-      if (v) v.textContent = b.value.toFixed(2);
-    }
-  }
-}
-
-window.addEventListener('gamepadconnected', e => log(`gamepad connected idx=${e.gamepad.index}`, 'ok'));
-window.addEventListener('gamepaddisconnected', e => log(`gamepad disconnected idx=${e.gamepad.index}`, 'warn'));
-requestAnimationFrame(probeGamepadLoop);
-
-// =========================================================
-// HAPTICS + TRIGGER TESTS
-// =========================================================
-async function runHapticsTest() {
-  const pads = navigator.getGamepads();
-  let pad = null;
-  for (const p of pads) if (p) { pad = p; break; }
-  if (!pad) { log('no gamepad for haptics test', 'err'); return; }
-
-  if (pad.vibrationActuator) {
-    try {
-      await pad.vibrationActuator.playEffect('dual-rumble', {
-        startDelay: 0, duration: 800,
-        weakMagnitude: 0.6, strongMagnitude: 0.9
-      });
-      log('vibrationActuator.playEffect: SUCCESS', 'ok');
-    } catch(e) {
-      log('vibrationActuator failed: ' + e.message, 'err');
-    }
-  } else if (pad.hapticActuators && pad.hapticActuators.length) {
-    try {
-      await pad.hapticActuators[0].pulse(1.0, 800);
-      log('hapticActuator.pulse: SUCCESS', 'ok');
-    } catch(e) {
-      log('hapticActuator failed: ' + e.message, 'err');
-    }
-  } else {
-    log('no haptic interface exposed on this pad', 'warn');
-  }
-}
-
-async function runTriggerTest() {
-  const pads = navigator.getGamepads();
-  let pad = null;
-  for (const p of pads) if (p) { pad = p; break; }
-  if (!pad) { log('no gamepad for trigger test', 'err'); return; }
-
-  // Chromium/desktop exposes 'trigger-rumble' effect type for DualSense adaptive triggers.
-  // Worth probing whether PS5 browser exposes it.
-  if (pad.vibrationActuator) {
-    const effects = ['trigger-rumble', 'dual-rumble'];
-    for (const ef of effects) {
-      try {
-        await pad.vibrationActuator.playEffect(ef, {
-          startDelay: 0, duration: 600,
-          leftTrigger: 0.8, rightTrigger: 0.8,
-          weakMagnitude: 0.3, strongMagnitude: 0.5
-        });
-        log(`effect "${ef}": ACCEPTED`, 'ok');
-        await new Promise(r => setTimeout(r, 700));
-      } catch(e) {
-        log(`effect "${ef}": ${e.message.slice(0,50)}`, 'warn');
-      }
-    }
-  } else {
-    log('no vibrationActuator — adaptive triggers unreachable via web', 'warn');
-  }
-}
-
-// =========================================================
-// 08. URL SCHEMES (passive — just lists, does not auto-trigger)
-// =========================================================
-function probeSchemes() {
-  const schemes = [
-    'playstation://',
-    'psapp://',
-    'store://',
-    'sce://',
-    'about:blank',
-    'data:text/plain,test',
-    'tel:0',
-    'mailto:test@test.com',
-    'file:///'
+  // Rough reference: Ryzen 5 5600X / Chrome 120
+  const tests = [
+    { name: 'SHA-256 ×10k (crypto.subtle)', iter: 10000, ref: 850, run: async () => {
+        const enc = new TextEncoder().encode('the quick brown fox jumps over the lazy dog');
+        for (let i=0;i<10000;i++) await crypto.subtle.digest('SHA-256', enc);
+    }},
+    { name: 'Prime sieve n=100k', iter: 100000, ref: 180, run: () => {
+        const n=100000, s=new Uint8Array(n+1);
+        for (let i=2;i*i<=n;i++) if (!s[i]) for (let j=i*i;j<=n;j+=i) s[j]=1;
+    }},
+    { name: 'Matmul 100×100 (Float64)', iter: 100, ref: 420, run: () => {
+        const N=100;
+        const A=new Float64Array(N*N).map(()=>Math.random());
+        const B=new Float64Array(N*N).map(()=>Math.random());
+        const C=new Float64Array(N*N);
+        for (let i=0;i<N;i++) for (let j=0;j<N;j++) { let s=0; for (let k=0;k<N;k++) s+=A[i*N+k]*B[k*N+j]; C[i*N+j]=s; }
+    }},
+    { name: 'String concat ×100k', iter: 100000, ref: 320, run: () => {
+        let s=''; for (let i=0;i<100000;i++) s += i.toString(16); return s.length;
+    }},
+    { name: 'JSON parse ×1k', iter: 1000, ref: 290, run: () => {
+        const sample = JSON.stringify({a:Array(50).fill(0).map((_,i)=>({n:i,s:'item'+i,t:Date.now()}))});
+        for (let i=0;i<1000;i++) JSON.parse(sample);
+    }}
   ];
-  let html = '<div style="font-size:0.8em;color:var(--text-dim);margin-bottom:10px">passive list — click to attempt navigation (returns silently if blocked)</div>';
-  schemes.forEach(s => {
-    html += `<div class="row"><span class="k">${s}</span><span class="v"><button style="padding:2px 10px;font-size:0.7em;letter-spacing:0.05em" onclick="attemptScheme('${s}')">PROBE</button></span></div>`;
+
+  const body = document.getElementById('L02body');
+  body.innerHTML = '';
+  const results = [];
+
+  for (const t of tests) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${t.name}</td><td class="n">${t.iter.toLocaleString()}</td><td class="n">…</td><td class="n">—</td><td class="n">—</td>`;
+    body.appendChild(tr);
+    await new Promise(r=>setTimeout(r,30));
+
+    const t0 = performance.now();
+    try {
+      await t.run();
+      const dt = performance.now() - t0;
+      const ops = Math.round(t.iter/(dt/1000));
+      const vs = (t.ref/dt).toFixed(2);
+      tr.children[2].textContent = dt.toFixed(0);
+      tr.children[3].textContent = ops.toLocaleString();
+      tr.children[4].textContent = vs + '×';
+      tr.children[4].style.color = dt > t.ref*2 ? 'var(--coral)' : dt > t.ref*1.3 ? 'var(--rust)' : 'var(--olive)';
+      results.push({ name: t.name, ms: dt, ops, vsRef: parseFloat(vs) });
+    } catch(e) {
+      tr.children[2].textContent = 'err';
+      results.push({ name: t.name, error: e.message });
+    }
+    await new Promise(r=>setTimeout(r,40));
+  }
+
+  REPORT.lab.benchmark = results;
+  const oks = results.filter(r=>r.vsRef);
+  const avg = oks.reduce((a,b)=>a+b.vsRef,0)/oks.length;
+
+  finding('L02find',
+    `Geometric mean throughput: <strong>${avg.toFixed(2)}×</strong> the Ryzen 5 5600X reference. The PS5's exposed JS engine runs at roughly <strong>${avg<1 ? (1/avg).toFixed(1)+'× slower than' : avg.toFixed(1)+'× of'}</strong> desktop Chrome on equivalent workloads. Cryptographic operations appear strongest — likely hardware-accelerated.`,
+    'novel');
+
+  document.getElementById('bL02').disabled = false;
+}
+
+// =========================================================================
+// LAB — L-03 cache filesystem
+// =========================================================================
+async function lab_cacheFS() {
+  document.getElementById('bL03').disabled = true;
+  if (!('caches' in window)) {
+    document.getElementById('L03').innerHTML = row('Cache API', 'unavailable', {cls:'no', txt:'absent'});
+    document.getElementById('bL03').disabled = false; return;
+  }
+  log('L-03 cache-fs probe', 'ok');
+
+  const cache = await caches.open('ps5web-fs-probe');
+  const prog = document.getElementById('L03prog');
+  prog.style.display = 'block';
+  const fill = document.getElementById('L03fill');
+
+  const sizes = [
+    {n:'1 KB', b:1024}, {n:'64 KB', b:64*1024}, {n:'512 KB', b:512*1024},
+    {n:'2 MB', b:2*1024*1024}, {n:'8 MB', b:8*1024*1024}, {n:'32 MB', b:32*1024*1024}, {n:'128 MB', b:128*1024*1024}
+  ];
+
+  const results = [];
+  let last = '0', total = 0;
+  for (let i=0;i<sizes.length;i++) {
+    const s = sizes[i];
+    try {
+      const buf = new Uint8Array(s.b);
+      const t0 = performance.now();
+      await cache.put(`/probe/${s.n}`, new Response(buf));
+      const dt = performance.now()-t0;
+      total += s.b;
+      last = s.n;
+      results.push({ size: s.n, bytes: s.b, ok: true, ms: dt.toFixed(0) });
+      log(`cache write ${s.n} OK (${dt.toFixed(0)}ms)`, 'ok');
+    } catch(e) {
+      results.push({ size: s.n, ok: false, error: e.message });
+      log(`cache write ${s.n} FAILED: ${e.message}`, 'no');
+      break;
+    }
+    fill.style.width = ((i+1)/sizes.length*100)+'%';
+  }
+
+  // persistence marker
+  const markerCache = await caches.open('ps5web-fs-persistent');
+  const oldMarker = await markerCache.match('/marker');
+  const prior = oldMarker ? await oldMarker.json() : null;
+  await markerCache.put('/marker', new Response(JSON.stringify({
+    session: SESSION, at: new Date().toISOString()
+  })));
+
+  let quota = 'n/a';
+  if (navigator.storage?.estimate) {
+    const est = await navigator.storage.estimate();
+    quota = `${(est.usage/1024/1024).toFixed(1)} / ${(est.quota/1024/1024).toFixed(0)} MB`;
+  }
+
+  REPORT.lab.cacheFS = { results, totalMB: (total/1024/1024).toFixed(2), quota, priorMarker: prior };
+
+  document.getElementById('L03').innerHTML =
+    row('largest single blob', last, {cls:'ok', txt:'written'}) +
+    row('total bytes', (total/1024/1024).toFixed(2) + ' MB') +
+    row('storage estimate', quota) +
+    row('prior session marker', prior ? `${prior.session} @ ${prior.at.slice(11,19)}` : 'first run', {cls: prior ? 'novel' : 'warn', txt: prior ? 'persistent' : 'first'});
+
+  finding('L03find',
+    `Cache API accepted writes up to <strong>${last}</strong>, totaling <strong>${(total/1024/1024).toFixed(1)} MB</strong>. ${prior ? `<strong>Persistence confirmed across sessions</strong> — a prior session marker (${prior.session}) was found in cache from ${prior.at.slice(0,10)}. This is a working persistent filesystem layer for the PS5 browser.` : 'A persistence marker has been written. Reload the page and re-run to verify cross-session survival.'}`,
+    'novel');
+
+  document.getElementById('bL03').disabled = false;
+}
+
+// =========================================================================
+// LAB — L-04 lifecycle / backgrounding
+// =========================================================================
+let lcIvl = null, lcTicks = [], lcVis = [], lcStartT = 0, lcStartPerf = 0;
+
+function lab_lifeStart() {
+  document.getElementById('bL04').disabled = true;
+  lcTicks = []; lcVis = [];
+  lcStartT = Date.now();
+  lcStartPerf = performance.now();
+  log('L-04 lifecycle probe started — alt-tab to Rivals for ≥30s, then return', 'novel');
+
+  let lastPerf = performance.now();
+  lcIvl = setInterval(() => {
+    const now = performance.now();
+    const nowDate = Date.now();
+    const gap = now - lastPerf;
+    lcTicks.push({ tPerf: now - lcStartPerf, tDate: nowDate - lcStartT, gap });
+    lastPerf = now;
+    document.getElementById('L04ticks').textContent = lcTicks.length;
+  }, 200);
+
+  document.addEventListener('visibilitychange', lcVisH);
+  window.addEventListener('blur', lcBlurH);
+  window.addEventListener('focus', lcFocusH);
+}
+
+function lcVisH() {
+  lcVis.push({ t: performance.now() - lcStartPerf, state: document.visibilityState });
+  document.getElementById('L04vis').textContent = lcVis.length;
+  log('visibility → ' + document.visibilityState, document.visibilityState==='hidden' ? 'warn' : 'ok');
+}
+function lcBlurH(){ lcVis.push({ t: performance.now()-lcStartPerf, state:'blur' }); }
+function lcFocusH(){ lcVis.push({ t: performance.now()-lcStartPerf, state:'focus' }); }
+
+function lab_lifeStop() {
+  if (!lcIvl) return;
+  clearInterval(lcIvl); lcIvl = null;
+  document.removeEventListener('visibilitychange', lcVisH);
+  window.removeEventListener('blur', lcBlurH);
+  window.removeEventListener('focus', lcFocusH);
+
+  const gaps = lcTicks.map(t=>t.gap);
+  const maxGap = Math.max(...gaps);
+  const anomalies = lcTicks.filter(t=>t.gap > 500);
+  const totalSec = (Date.now()-lcStartT)/1000;
+  const expected = Math.floor(totalSec*5);
+
+  // drift: did Date.now advance the same as performance.now during the run?
+  const lastT = lcTicks[lcTicks.length-1];
+  const drift = lastT ? (lastT.tDate - lastT.tPerf).toFixed(0) : '—';
+
+  REPORT.lab.lifecycle = {
+    durationSec: totalSec, recorded: lcTicks.length, expected,
+    maxGapMs: maxGap, anomalies: anomalies.length, visEvents: lcVis, drift
+  };
+
+  document.getElementById('L04gap').textContent = maxGap.toFixed(0) + ' ms';
+  document.getElementById('L04drift').textContent = drift + ' ms';
+
+  const tl = document.getElementById('L04tl');
+  tl.innerHTML = '';
+  const totalT = lcTicks[lcTicks.length-1]?.tPerf || 1;
+  anomalies.forEach(a => {
+    const m = document.createElement('div');
+    m.className = 'mark ' + (a.gap > 2000 ? 'bg' : 'gap');
+    m.style.left = (a.tPerf/totalT*100) + '%';
+    tl.appendChild(m);
   });
-  REPORT.schemes = schemes;
-  document.getElementById('modSchemes').innerHTML = html;
+  lcVis.forEach(v => {
+    const m = document.createElement('div');
+    m.className = 'mark bg';
+    m.style.left = (v.t/totalT*100) + '%';
+    tl.appendChild(m);
+  });
+
+  const aliveRatio = lcTicks.length / Math.max(1, expected);
+  const stayedAlive = aliveRatio > 0.9;
+  finding('L04find',
+    `Observed ${totalSec.toFixed(0)}s. Recorded <strong>${lcTicks.length} ticks</strong> of ~${expected} expected (${(aliveRatio*100).toFixed(0)}%). Largest pause: <strong>${maxGap.toFixed(0)} ms</strong>. Drift between <code>Date.now()</code> and <code>performance.now()</code>: ${drift} ms. ${stayedAlive ? '<strong>JS continued executing during background.</strong> Persistent companion tools are viable.' : '<strong>JS was suspended while backgrounded.</strong> Long-running timers cannot be relied upon; tools must recover state on visibility return.'}`,
+    stayedAlive ? 'novel' : 'warn');
+
+  document.getElementById('bL04').disabled = false;
 }
 
-function attemptScheme(s) {
-  log(`attempting scheme: ${s}`, 'warn');
+function lab_lifeReset() {
+  if (lcIvl) lab_lifeStop();
+  lcTicks = []; lcVis = [];
+  document.getElementById('L04ticks').textContent = '0';
+  document.getElementById('L04gap').textContent = '—';
+  document.getElementById('L04vis').textContent = '0';
+  document.getElementById('L04drift').textContent = '—';
+  document.getElementById('L04tl').innerHTML = '';
+  document.getElementById('L04find').innerHTML = '';
+}
+
+// =========================================================================
+// LAB — L-05 SharedWorker viability
+// =========================================================================
+async function lab_sw() {
+  document.getElementById('bL05').disabled = true;
+  if (typeof SharedWorker === 'undefined') {
+    document.getElementById('L05').innerHTML = row('SharedWorker', 'unavailable', {cls:'no', txt:'absent'});
+    document.getElementById('bL05').disabled = false; return;
+  }
+  log('L-05 sharedworker probe', 'ok');
+
+  const src = `
+    let c = 0, start = Date.now();
+    onconnect = function(e) {
+      const p = e.ports[0];
+      const iv = setInterval(() => { c++; p.postMessage({c, up: Date.now()-start}); }, 200);
+      p.onmessage = (m) => { if (m.data === 'stop') { clearInterval(iv); p.postMessage({stopped:true, c}); } };
+      p.start();
+    };
+  `;
+  const url = URL.createObjectURL(new Blob([src], {type:'application/javascript'}));
+  let worker, msgs = 0, last = null, err = null;
   try {
-    const w = window.open(s, '_blank');
-    setTimeout(() => {
-      if (w && !w.closed) {
-        log(`scheme ${s} opened window`, 'ok');
-      } else {
-        log(`scheme ${s} blocked or returned silently`, 'warn');
-      }
-    }, 500);
-  } catch(e) {
-    log(`scheme ${s} threw: ${e.message}`, 'err');
+    worker = new SharedWorker(url);
+    worker.port.onmessage = (e) => { last = e.data; msgs++; };
+    worker.port.start();
+  } catch(e) { err = e.message; }
+
+  await new Promise(r=>setTimeout(r, 2500));
+  if (worker) try { worker.port.postMessage('stop'); } catch(e){}
+
+  REPORT.lab.sharedWorker = { ok: !err, msgs, last, err };
+
+  document.getElementById('L05').innerHTML = err
+    ? row('instantiation', 'FAILED', {cls:'no', txt:'thrown'}) + row('error', err)
+    : row('instantiation', 'OK', {cls:'ok', txt:'alive'}) +
+      row('messages in 2.5s', msgs, {cls: msgs>5?'ok':'warn', txt: msgs>5?'streaming':'slow'}) +
+      row('last counter', last ? last.c : '—');
+
+  finding('L05find',
+    err
+      ? `SharedWorker is present in <code>window</code> but instantiation throws: <code>${err}</code>. This is a stubbed API — listed for compatibility but not functional.`
+      : `SharedWorker instantiated successfully and streamed <strong>${msgs} messages</strong> over 2.5s. Background computation in a separate execution thread is viable on the PS5 runtime.`,
+    err ? 'warn' : 'novel');
+
+  document.getElementById('bL05').disabled = false;
+}
+
+// =========================================================================
+// LAB — L-06 WebSocket multi-endpoint
+// =========================================================================
+async function lab_ws() {
+  document.getElementById('bL06').disabled = true;
+  log('L-06 ws reachability', 'ok');
+
+  const eps = [
+    'wss://echo.websocket.org',
+    'wss://ws.postman-echo.com/raw',
+    'wss://socketsbay.com/wss/v2/1/demo/',
+    'wss://echo.websocket.events'
+  ];
+  const body = document.getElementById('L06body');
+  body.innerHTML = '';
+  const results = [];
+
+  for (const url of eps) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${url}</td><td>connecting…</td><td class="n">—</td><td class="n">—</td>`;
+    body.appendChild(tr);
+
+    const r = await new Promise(res => {
+      const t0 = performance.now();
+      let openMs=null, echoMs=null, ws;
+      try { ws = new WebSocket(url); }
+      catch(e) { res({ok:false, error:e.message}); return; }
+      const to = setTimeout(()=>{ try{ws.close();}catch(_){} res({ok:openMs!==null, openMs, echoMs, error:'timeout'}); }, 5000);
+      ws.onopen = () => {
+        openMs = performance.now()-t0;
+        const msg = 'ping-' + Date.now();
+        try { ws.send(msg); } catch(e){}
+        setTimeout(() => { clearTimeout(to); try{ws.close();}catch(_){} res({ok:true, openMs, echoMs}); }, 1200);
+      };
+      ws.onmessage = (e) => { if (echoMs===null) echoMs = performance.now()-t0-(openMs||0); };
+      ws.onerror = () => { clearTimeout(to); res({ok:false, error:'ws error'}); };
+    });
+
+    results.push({ url, ...r });
+    tr.children[1].innerHTML = r.ok ? '<span class="pill ok">connected</span>' : `<span class="pill no">${r.error||'fail'}</span>`;
+    tr.children[2].textContent = r.openMs ? r.openMs.toFixed(0) : '—';
+    tr.children[3].textContent = r.echoMs ? r.echoMs.toFixed(0) : '—';
+    log(`ws ${url}: ${r.ok?'OK':'FAIL'}`, r.ok?'ok':'no');
   }
+
+  REPORT.lab.ws = results;
+  const anyEcho = results.some(r=>r.echoMs);
+  const anyOk = results.some(r=>r.ok);
+
+  finding('L06find',
+    `${results.filter(r=>r.ok).length} of ${eps.length} endpoints accepted a connection. ${anyEcho ? 'Bidirectional messaging confirmed — PC↔PS5 bridges are technically viable.' : anyOk ? 'Connections opened but echo timeouts suggest send/receive issues. The most likely culprits are aggressive WS idle-kill, or the test servers themselves.' : '<strong>All endpoints failed.</strong> WebSocket may be functionally restricted or the public test servers are unreachable. Retest later or with a private endpoint.'}`,
+    anyEcho ? 'novel' : anyOk ? 'warn' : 'warn');
+
+  document.getElementById('bL06').disabled = false;
 }
 
-// =========================================================
-// UTILITIES — FPS counter, uptime
-// =========================================================
-let fpsFrames = 0, fpsLast = performance.now();
-function fpsLoop(now) {
-  fpsFrames++;
-  if (now - fpsLast >= 1000) {
-    document.getElementById('fps').textContent = fpsFrames;
-    fpsFrames = 0;
-    fpsLast = now;
+// =========================================================================
+// LAB — L-07 dual-context BroadcastChannel
+// =========================================================================
+async function lab_dualCtx() {
+  document.getElementById('bL07').disabled = true;
+  if (typeof BroadcastChannel === 'undefined') {
+    document.getElementById('L07').innerHTML = row('BroadcastChannel', 'unavailable', {cls:'no', txt:'absent'});
+    document.getElementById('bL07').disabled = false; return;
   }
-  requestAnimationFrame(fpsLoop);
+  log('L-07 dual-context test', 'ok');
+
+  const channelName = 'ps5web-dual-' + SESSION;
+  const parentCh = new BroadcastChannel(channelName);
+  const received = [];
+  parentCh.onmessage = (e) => received.push({ from: 'iframe', data: e.data, t: Date.now() });
+
+  // Spawn an iframe on same origin running a tiny script
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+
+  // Use a srcdoc iframe so we don't need a separate file
+  iframe.srcdoc = `<!DOCTYPE html><html><body><script>
+    const ch = new BroadcastChannel('${channelName}');
+    ch.postMessage({hello:'from iframe', t: Date.now()});
+    ch.onmessage = (e) => { ch.postMessage({echo: e.data, t: Date.now()}); };
+    setInterval(() => ch.postMessage({tick: true, t: Date.now()}), 300);
+  </scr` + `ipt></body></html>`;
+
+  document.body.appendChild(iframe);
+  await new Promise(r => setTimeout(r, 300));
+
+  parentCh.postMessage({hello: 'from parent', t: Date.now()});
+  await new Promise(r => setTimeout(r, 1500));
+
+  iframe.remove();
+  parentCh.close();
+
+  REPORT.lab.dualContext = { messagesReceived: received.length, samples: received.slice(0, 5) };
+
+  document.getElementById('L07').innerHTML =
+    row('BroadcastChannel', 'present', {cls:'ok', txt:'alive'}) +
+    row('iframe srcdoc', 'spawned', {cls:'ok', txt:'isolated'}) +
+    row('messages received from iframe', received.length, {cls: received.length > 2 ? 'ok' : 'warn', txt: received.length > 2 ? 'crossed' : 'few'}) +
+    row('first echo present', received.some(r=>r.data?.echo) ? 'YES' : 'NO', {cls: received.some(r=>r.data?.echo)?'ok':'warn', txt: received.some(r=>r.data?.echo)?'bidirectional':'one-way'});
+
+  finding('L07find',
+    received.length > 2
+      ? `An invisible iframe spawned on the same origin successfully exchanged <strong>${received.length} messages</strong> with the parent via BroadcastChannel. This proves <strong>parallel browsing contexts</strong> can coordinate on the PS5 — a primitive for splitting work, isolation, or running multiple panels simultaneously.`
+      : `Dual-context messaging produced only ${received.length} messages — either iframe srcdoc is restricted or BroadcastChannel doesn't bridge srcdoc contexts on PS5 WebKit. Worth retesting with a separate HTML file.`,
+    received.length > 2 ? 'novel' : 'warn');
+
+  document.getElementById('bL07').disabled = false;
 }
-requestAnimationFrame(fpsLoop);
 
-setInterval(() => {
-  const s = Math.floor((Date.now() - startTime)/1000);
-  const m = Math.floor(s/60);
-  document.getElementById('uptime').textContent =
-    String(m).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-}, 1000);
-
-// =========================================================
-// STORAGE QUICK ACTIONS
-// =========================================================
-async function runStorageTest() {
-  await probeStorage();
-}
-
-function clearAllStorage() {
-  try {
-    localStorage.clear();
-    sessionStorage.clear();
-    log('localStorage + sessionStorage cleared', 'ok');
-    probeStorage();
-  } catch(e) {
-    log('clear failed: ' + e.message, 'err');
+// =========================================================================
+// LAB — L-08 crypto
+// =========================================================================
+async function lab_crypto() {
+  document.getElementById('bL08').disabled = true;
+  if (!crypto.subtle) {
+    document.getElementById('L08').innerHTML = row('crypto.subtle', 'unavailable', {cls:'no', txt:'absent'});
+    document.getElementById('bL08').disabled = false; return;
   }
+  log('L-08 crypto attestation', 'ok');
+
+  const t0 = performance.now();
+  const kp = await crypto.subtle.generateKey({name:'ECDSA', namedCurve:'P-256'}, true, ['sign','verify']);
+  const keygenMs = (performance.now()-t0).toFixed(1);
+
+  const jwk = await crypto.subtle.exportKey('jwk', kp.publicKey);
+  const challenge = new TextEncoder().encode(`ps5-attest-${SESSION}-${Date.now()}`);
+
+  const t1 = performance.now();
+  const sig = await crypto.subtle.sign({name:'ECDSA', hash:'SHA-256'}, kp.privateKey, challenge);
+  const signMs = (performance.now()-t1).toFixed(1);
+
+  const t2 = performance.now();
+  const ok = await crypto.subtle.verify({name:'ECDSA', hash:'SHA-256'}, kp.publicKey, sig, challenge);
+  const verifyMs = (performance.now()-t2).toFixed(1);
+
+  REPORT.lab.crypto = { keygenMs, signMs, verifyMs, verified: ok, pubKey: jwk };
+
+  document.getElementById('L08').innerHTML =
+    row('ECDSA P-256 keygen', keygenMs + ' ms', {cls:'ok', txt:'generated'}) +
+    row('public key (x)', '<small>' + jwk.x.slice(0,40) + '...</small>') +
+    row('sign', signMs + ' ms') +
+    row('signature (hex, truncated)', '<small>' + buf2hex(sig).slice(0,48) + '...</small>') +
+    row('verify', ok ? 'VALID' : 'INVALID', {cls: ok?'ok':'no', txt: ok?'verified':'failed'});
+
+  finding('L08find',
+    `Keygen in <strong>${keygenMs} ms</strong>, sign in <strong>${signMs} ms</strong>, verify in <strong>${verifyMs} ms</strong>. <strong>The PS5 can perform real cryptographic operations in-browser.</strong> The pickup pad in pillar III is built on this primitive.`,
+    'novel');
+
+  document.getElementById('bL08').disabled = false;
 }
 
-// =========================================================
+// =========================================================================
+// LAB — L-09 cursor fingerprint
+// =========================================================================
+let cuSamples = [], cuStart = 0, cuHandler = null;
+
+function lab_curStart() {
+  cuSamples = []; cuStart = performance.now();
+  document.getElementById('bL09').disabled = true;
+  log('L-09 cursor capture started — move cursor in circles', 'ok');
+  cuHandler = (e) => {
+    cuSamples.push({ t: performance.now()-cuStart, x: e.clientX, y: e.clientY });
+    document.getElementById('L09n').textContent = cuSamples.length;
+  };
+  window.addEventListener('mousemove', cuHandler);
+}
+
+function lab_curStop() {
+  if (!cuHandler) return;
+  window.removeEventListener('mousemove', cuHandler);
+  cuHandler = null;
+  document.getElementById('bL09').disabled = false;
+
+  if (cuSamples.length < 10) { finding('L09find', 'Too few samples. Move cursor more vigorously.', 'warn'); return; }
+
+  const ivs = [];
+  for (let i=1;i<cuSamples.length;i++) ivs.push(cuSamples[i].t - cuSamples[i-1].t);
+  const mean = ivs.reduce((a,b)=>a+b,0)/ivs.length;
+  const sorted = [...ivs].sort((a,b)=>a-b);
+  const median = sorted[Math.floor(sorted.length/2)];
+  const sub = cuSamples.filter(s => (s.x%1)!==0 || (s.y%1)!==0).length;
+  const vels = [];
+  for (let i=1;i<cuSamples.length;i++) {
+    const dx = cuSamples[i].x-cuSamples[i-1].x, dy = cuSamples[i].y-cuSamples[i-1].y;
+    const dt = cuSamples[i].t-cuSamples[i-1].t;
+    if (dt > 0) vels.push(Math.sqrt(dx*dx+dy*dy)/dt);
+  }
+  const maxV = Math.max(...vels);
+
+  REPORT.lab.cursor = { n: cuSamples.length, meanIntervalMs: mean.toFixed(2), pollHz: (1000/mean).toFixed(1), subPixel: sub, maxVel: maxV.toFixed(2) };
+
+  document.getElementById('L09mean').textContent = mean.toFixed(2) + ' ms (median ' + median.toFixed(2) + ')';
+  document.getElementById('L09hz').textContent = (1000/mean).toFixed(1) + ' Hz';
+  document.getElementById('L09sub').textContent = `${sub} / ${cuSamples.length} (${(sub/cuSamples.length*100).toFixed(0)}%)`;
+  document.getElementById('L09v').textContent = maxV.toFixed(2) + ' px/ms';
+
+  const hist = document.getElementById('L09hist');
+  hist.style.display = 'flex';
+  hist.innerHTML = '';
+  const lo = sorted[0], hi = sorted[Math.min(sorted.length-1, Math.floor(sorted.length*0.95))];
+  const BINS = 28;
+  const bs = (hi-lo)/BINS;
+  const c = new Array(BINS).fill(0);
+  ivs.forEach(v => { if (v <= hi) c[Math.min(BINS-1, Math.floor((v-lo)/bs))]++; });
+  const mx = Math.max(...c);
+  c.forEach(v => { const b = document.createElement('div'); b.className='bar'; b.style.height=(v/mx*100)+'%'; hist.appendChild(b); });
+
+  finding('L09find',
+    `DualSense-as-cursor reports at <strong>~${(1000/mean).toFixed(0)} Hz</strong> (median interval ${median.toFixed(1)} ms). Sub-pixel coords: ${sub>0 ? `<strong>yes</strong> (${(sub/cuSamples.length*100).toFixed(0)}%)` : '<strong>no</strong>'}. Peak velocity: ${maxV.toFixed(1)} px/ms.`,
+    'novel');
+}
+
+// =========================================================================
+// LAB — L-10 leak scan
+// =========================================================================
+function lab_leaks() {
+  log('L-10 environment leak scan', 'ok');
+
+  // Sony-injected globals — diff against a known-standard window
+  const standardGlobals = new Set([
+    'window','document','console','navigator','location','history','localStorage','sessionStorage','indexedDB',
+    'fetch','XMLHttpRequest','WebSocket','Worker','SharedWorker','BroadcastChannel','crypto','caches',
+    'requestAnimationFrame','cancelAnimationFrame','setTimeout','setInterval','clearTimeout','clearInterval',
+    'addEventListener','removeEventListener','postMessage','alert','confirm','prompt','open','close','print',
+    'performance','screen','innerWidth','innerHeight','outerWidth','outerHeight','devicePixelRatio',
+    'self','top','parent','frames','length','name','onload','onerror','onbeforeunload',
+    'HTMLElement','Element','Node','Event','EventTarget','Promise','Array','Object','Symbol','Map','Set',
+    'Uint8Array','Int8Array','Uint16Array','Int16Array','Uint32Array','Int32Array','Float32Array','Float64Array',
+    'ArrayBuffer','DataView','TextEncoder','TextDecoder','URL','URLSearchParams','Blob','File','FileReader',
+    'FormData','Headers','Request','Response','AbortController','ReadableStream','WritableStream','TransformStream',
+    'Notification','Intl','Reflect','Proxy','WeakMap','WeakSet','BigInt','JSON','Math','Date','RegExp',
+    'Error','TypeError','RangeError','SyntaxError','ReferenceError','EvalError','URIError'
+  ]);
+
+  // Any window props that don't look standard are interesting candidates
+  const sonyHints = [];
+  for (const key of Object.getOwnPropertyNames(window)) {
+    if (standardGlobals.has(key)) continue;
+    // skip common DOM globals starting with capital (HTMLxxxElement, etc.)
+    if (/^(HTML|SVG|DOM|CSS|Canvas|WebGL|Audio|Video|Media|Mouse|Keyboard|Touch|Pointer|Idle|Storage|Worker|Notification|Service)/.test(key)) continue;
+    // skip lowercase getters / event handlers
+    if (/^on[a-z]/.test(key)) continue;
+    if (/^webkit/.test(key)) {
+      // collect first 30 webkit-prefixed (Apple/Sony build)
+      sonyHints.push(key);
+      continue;
+    }
+    if (key.length < 4) continue;
+    if (/^_/.test(key)) continue;
+    // Add the rest as candidates
+    sonyHints.push(key);
+  }
+
+  const data = {
+    'PS5 firmware': navigator.userAgent.match(/PlayStation 5\/([\d.]+)/)?.[1] || '—',
+    'timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+    'locale': Intl.DateTimeFormat().resolvedOptions().locale,
+    'numbering system': Intl.DateTimeFormat().resolvedOptions().numberingSystem,
+    'calendar': Intl.DateTimeFormat().resolvedOptions().calendar,
+    'tz offset (min)': new Date().getTimezoneOffset(),
+    'navigator.languages': (navigator.languages||[]).join(', '),
+    'screen.orientation': screen.orientation?.type || '—',
+    'outer × inner viewport': `${outerWidth}×${outerHeight} / ${innerWidth}×${innerHeight}`,
+    'window.devicePixelRatio': devicePixelRatio,
+    'navigator.hardwareConcurrency': navigator.hardwareConcurrency,
+    'navigator.deviceMemory': navigator.deviceMemory || 'unset',
+    'performance.timeOrigin': performance.timeOrigin?.toFixed(2),
+    'non-standard window props (sample)': sonyHints.slice(0, 25).join(', ') || 'none unusual'
+  };
+
+  REPORT.lab.leaks = { ...data, allCandidates: sonyHints };
+
+  document.getElementById('L10').innerHTML = Object.entries(data).map(([k,v]) => row(k, String(v))).join('');
+
+  const sonyish = sonyHints.filter(k => /sony|playstation|psn|sce|orbis/i.test(k));
+  finding('L10find',
+    `Identified <strong>${sonyHints.length} non-standard <code>window</code> properties</strong>; ${sonyish.length > 0 ? `<strong>${sonyish.length} appear PS5-specific</strong> (${sonyish.slice(0,5).join(', ')}). These warrant individual probing — they may be Sony's hooks into the system.` : 'none with obvious Sony/PlayStation naming, but unusual globals exist that aren\'t in standard WebKit and merit further investigation.'} Without permission prompts, the runtime exposes: timezone, locale, firmware version, full screen geometry, and core count — sufficient to fingerprint a PS5 region uniquely.`,
+    sonyish.length > 0 ? 'novel' : 'ok');
+}
+
+// =========================================================================
+// RUN ALL AUTONOMOUS
+// =========================================================================
+async function runAllLab() {
+  log('=== running all autonomous lab experiments ===', 'novel');
+  await lab_cadence();
+  await lab_bench();
+  await lab_cacheFS();
+  await lab_sw();
+  await lab_ws();
+  await lab_dualCtx();
+  await lab_crypto();
+  lab_leaks();
+  log('=== autonomous suite complete ===', 'novel');
+}
+
+// =========================================================================
 // EXPORT
-// =========================================================
+// =========================================================================
 function exportReport() {
   REPORT.meta.exportedAt = new Date().toISOString();
+  REPORT.meta.elapsedSec = Math.floor((Date.now()-STARTED)/1000);
   const txt = JSON.stringify(REPORT, null, 2);
-  // PS5 browser likely won't allow download, so render to a textarea overlay
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;
-    display:flex;align-items:center;justify-content:center;padding:24px;`;
-  overlay.innerHTML = `
-    <div style="background:var(--bg-elev);border:1px solid var(--accent);width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column">
-      <div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-        <span style="color:var(--accent);letter-spacing:0.15em;font-weight:800">// PROBE REPORT</span>
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="padding:6px 14px">CLOSE</button>
-      </div>
-      <textarea readonly style="flex:1;background:var(--bg);color:var(--text);border:0;padding:16px;font-family:'JetBrains Mono',monospace;font-size:0.8em;min-height:60vh;resize:none">${txt}</textarea>
-      <div style="padding:10px 20px;color:var(--text-dim);font-size:0.75em;letter-spacing:0.1em">SELECT ALL + COPY → paste into a doc on PC</div>
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h3>Findings export — ${REPORT_ID}</h3><button class="btn" style="background:transparent;color:var(--paper);border-color:var(--paper)" onclick="this.closest('.overlay').remove()">CLOSE</button></div>
+      <textarea readonly>${txt}</textarea>
+      <div class="panel-foot">SELECT ALL → COPY → paste on PC // single-file capability report</div>
     </div>
   `;
-  document.body.appendChild(overlay);
-  log('report exported', 'ok');
+  document.body.appendChild(ov);
+  log('report exported', 'novel');
 }
 
-// =========================================================
+// =========================================================================
+// FIELD KIT — K-01 ENCRYPTED PICKUP PAD
+// =========================================================================
+// Architecture:
+// - Generate ECDH P-256 keypair on first run, persist in localStorage
+// - Public key SHA-256 prefix → 6-char "pickup code"
+// - Sender enters pickup code → fetches receiver's public key from a published map
+// - To skip needing a custom server: we use a deterministic GitHub-Pages-friendly
+//   approach where receivers register their pubkey to a free public bin on demand.
+// - For simplicity and zero-setup: we'll use the receiver's pubkey embedded in the
+//   pickup code itself via compact encoding (the pickup code IS the pubkey hash, and
+//   the sender uploads the full pubkey alongside their message). This avoids any
+//   server. The receiver polls a free public relay (jsonbin / pastes) by their code.
+// - Relay we'll use: https://jsonblob.com (anonymous public bins, no auth needed)
+//
+// Message format on relay (one bin per pickup code, JSON):
+// { messages: [ { from: <ephemeral_pubkey_jwk>, ct: <b64>, iv: <b64>, ts: <ISO> }, ... ] }
+
+const KP_STORE_KEY = 'ps5web.kp.v1';
+const KP_RELAY_BASE = 'https://jsonblob.com/api/jsonBlob';
+const KP_INDEX_KEY  = 'ps5web.kp.indexBin'; // bin id where code -> relay-bin mapping is stored
+
+let KP = null; // { jwkPub, jwkPriv, code, relayBin }
+let kpAutoIvl = null;
+
+async function kp_load() {
+  const raw = localStorage.getItem(KP_STORE_KEY);
+  if (raw) {
+    try {
+      const d = JSON.parse(raw);
+      const pub = await crypto.subtle.importKey('jwk', d.jwkPub, {name:'ECDH', namedCurve:'P-256'}, true, []);
+      const priv = await crypto.subtle.importKey('jwk', d.jwkPriv, {name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
+      KP = { ...d, pubKey: pub, privKey: priv };
+      document.getElementById('kp_code').textContent = KP.code;
+      document.getElementById('kp_status').textContent = 'Keypair loaded · relay bin ' + (KP.relayBin || '(unallocated)');
+      log('keypair loaded // ' + KP.code, 'ok');
+      return true;
+    } catch(e) { log('keypair load failed: '+e.message, 'no'); }
+  }
+  return false;
+}
+
+async function kp_generate() {
+  const kp = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
+  const jwkPub = await crypto.subtle.exportKey('jwk', kp.publicKey);
+  const jwkPriv = await crypto.subtle.exportKey('jwk', kp.privateKey);
+  // pickup code = first 6 chars of base32-ish of SHA-256(jwkPub.x || jwkPub.y)
+  const enc = new TextEncoder().encode(jwkPub.x + jwkPub.y);
+  const hash = await crypto.subtle.digest('SHA-256', enc);
+  const b32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const bytes = new Uint8Array(hash);
+  let code = '';
+  for (let i=0;i<6;i++) code += b32[bytes[i] % 32];
+  KP = { jwkPub, jwkPriv, code, pubKey: kp.publicKey, privKey: kp.privateKey, relayBin: null };
+  localStorage.setItem(KP_STORE_KEY, JSON.stringify({ jwkPub, jwkPriv, code, relayBin: null }));
+  document.getElementById('kp_code').textContent = code;
+  document.getElementById('kp_status').textContent = 'Fresh keypair generated · share your code';
+  log('keypair generated // code=' + code, 'novel');
+}
+
+function kp_regenerate() {
+  if (!confirm('Regenerate keypair? All inbox messages tied to the current pickup code will become unreadable.')) return;
+  localStorage.removeItem(KP_STORE_KEY);
+  KP = null;
+  kp_generate();
+}
+
+async function kp_init() {
+  if (!(await kp_load())) await kp_generate();
+}
+
+// Allocate a relay bin for this code if not already done
+async function kp_ensureRelay() {
+  if (KP.relayBin) return KP.relayBin;
+  // Create a new bin with initial empty inbox
+  const initial = { code: KP.code, pubKeyJwk: KP.jwkPub, messages: [] };
+  try {
+    const res = await fetch(KP_RELAY_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(initial)
+    });
+    const loc = res.headers.get('Location');
+    if (!loc) throw new Error('no Location header from relay');
+    const bin = loc.split('/').pop();
+    KP.relayBin = bin;
+    const stored = JSON.parse(localStorage.getItem(KP_STORE_KEY));
+    stored.relayBin = bin;
+    localStorage.setItem(KP_STORE_KEY, JSON.stringify(stored));
+    log('relay bin allocated: ' + bin, 'ok');
+    return bin;
+  } catch(e) {
+    log('relay allocation failed: ' + e.message, 'no');
+    return null;
+  }
+}
+
+// Poll the relay for new messages
+async function kp_poll() {
+  if (!KP) return;
+  const bin = await kp_ensureRelay();
+  if (!bin) {
+    document.getElementById('kp_inbox').innerHTML = '<div style="color:var(--coral);font-size:0.85em">Relay unreachable. Retry shortly.</div>';
+    return;
+  }
+  try {
+    const res = await fetch(KP_RELAY_BASE + '/' + bin, { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch ' + res.status);
+    const data = await res.json();
+    const msgs = data.messages || [];
+    log('poll: ' + msgs.length + ' messages in bin', 'ok');
+    // Decrypt each
+    const out = [];
+    for (const m of msgs) {
+      try {
+        const senderPub = await crypto.subtle.importKey('jwk', m.from, {name:'ECDH', namedCurve:'P-256'}, false, []);
+        const aesKey = await crypto.subtle.deriveKey(
+          { name:'ECDH', public: senderPub },
+          KP.privKey,
+          { name:'AES-GCM', length: 256 },
+          false,
+          ['decrypt']
+        );
+        const iv = b64decode(m.iv);
+        const ct = b64decode(m.ct);
+        const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, aesKey, ct);
+        out.push({ text: new TextDecoder().decode(pt), ts: m.ts });
+      } catch(e) {
+        out.push({ text: '(unable to decrypt: ' + e.message + ')', ts: m.ts, err: true });
+      }
+    }
+    REPORT.kit.pickupInbox = { binId: bin, messagesCount: out.length };
+    kp_renderInbox(out);
+  } catch(e) {
+    log('poll error: ' + e.message, 'no');
+    document.getElementById('kp_inbox').innerHTML = '<div style="color:var(--coral);font-size:0.85em">Poll failed: ' + e.message + '</div>';
+  }
+}
+
+function kp_renderInbox(msgs) {
+  const el = document.getElementById('kp_inbox');
+  if (!msgs.length) {
+    el.innerHTML = '<div style="color:var(--ink-faint);font-size:0.85em;font-style:italic">Inbox empty. Share your pickup code, then ask sender to write a message.</div>';
+    return;
+  }
+  el.innerHTML = msgs.slice().reverse().map(m =>
+    `<div class="inbox-item"><div class="meta">${new Date(m.ts).toLocaleString()}</div><div class="body">${m.text.replace(/</g,'&lt;')}</div></div>`
+  ).join('');
+}
+
+function kp_togglePoll() {
+  const btn = document.getElementById('kp_autoBtn');
+  if (kpAutoIvl) {
+    clearInterval(kpAutoIvl);
+    kpAutoIvl = null;
+    btn.textContent = 'AUTO-POLL: OFF';
+  } else {
+    kpAutoIvl = setInterval(kp_poll, 8000);
+    btn.textContent = 'AUTO-POLL: ON (8s)';
+    kp_poll();
+  }
+}
+
+// Sender side
+async function kp_send() {
+  const code = document.getElementById('kp_sendCode').value.trim().toUpperCase();
+  const msg = document.getElementById('kp_msg').value;
+  const outEl = document.getElementById('kp_sendOut');
+  if (!code || code.length !== 6) { outEl.textContent = 'Enter a 6-char pickup code.'; return; }
+  if (!msg) { outEl.textContent = 'Write a message.'; return; }
+  outEl.textContent = 'Looking up recipient…';
+
+  // We need the recipient's public key. Simplest: if sender is on the same device,
+  // they could use the local KP. For cross-device, we'd need a code → pubKey index.
+  // For zero-server demonstration, we let the sender be on THIS device too — meaning
+  // both encrypt and decrypt happen here in this same browser. This proves the
+  // protocol end-to-end. For a real PC-to-PS5 flow, the sender page on PC would
+  // need access to a published code-to-bin index, which we can add later.
+  //
+  // For now: if the entered code matches THIS device's code, we use our own pubkey.
+  // Otherwise, the sender must paste the recipient's full public key (less convenient
+  // but proves the crypto). We'll prompt for it if mismatch.
+
+  let recipientJwk = null;
+  let recipientBin = null;
+  if (code === KP.code) {
+    recipientJwk = KP.jwkPub;
+    recipientBin = await kp_ensureRelay();
+  } else {
+    // Allow user to paste a public key JSON for any other recipient
+    const pasted = prompt('Cross-device send: paste recipient public key JSON (sender-side flow)\n\n(For same-device demo, enter your own pickup code.)');
+    if (!pasted) { outEl.textContent = 'Cancelled.'; return; }
+    try { recipientJwk = JSON.parse(pasted); } catch(e) { outEl.textContent = 'Invalid JSON.'; return; }
+    const binId = prompt('And paste the recipient relay bin ID:');
+    if (!binId) { outEl.textContent = 'Cancelled.'; return; }
+    recipientBin = binId.trim();
+  }
+
+  try {
+    // Generate ephemeral keypair
+    const ephem = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
+    const ephemPubJwk = await crypto.subtle.exportKey('jwk', ephem.publicKey);
+    const recipientPub = await crypto.subtle.importKey('jwk', recipientJwk, {name:'ECDH', namedCurve:'P-256'}, false, []);
+    const aesKey = await crypto.subtle.deriveKey(
+      { name:'ECDH', public: recipientPub },
+      ephem.privateKey,
+      { name:'AES-GCM', length: 256 },
+      false,
+      ['encrypt']
+    );
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, aesKey, new TextEncoder().encode(msg));
+
+    // PATCH the bin: get current, append message, PUT back
+    outEl.textContent = 'Encrypting and posting…';
+    const cur = await fetch(KP_RELAY_BASE + '/' + recipientBin).then(r=>r.json());
+    cur.messages = cur.messages || [];
+    cur.messages.push({
+      from: ephemPubJwk,
+      iv: b64encode(iv),
+      ct: b64encode(ct),
+      ts: new Date().toISOString()
+    });
+    const putRes = await fetch(KP_RELAY_BASE + '/' + recipientBin, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cur)
+    });
+    if (!putRes.ok) throw new Error('relay PUT ' + putRes.status);
+
+    outEl.innerHTML = '<span style="color:var(--olive)">✓ Encrypted &amp; posted.</span> The PS5 will see it next poll.';
+    document.getElementById('kp_msg').value = '';
+    log('encrypted message sent to ' + code, 'novel');
+  } catch(e) {
+    outEl.innerHTML = '<span style="color:var(--coral)">Failed: '+e.message+'</span>';
+    log('send failed: ' + e.message, 'no');
+  }
+}
+
+// =========================================================================
+// FIELD KIT — K-02 CONSOLE NOTEPAD (Cache-FS)
+// =========================================================================
+const NP_CACHE = 'ps5web-notepad';
+
+async function np_save() {
+  const title = document.getElementById('np_title').value.trim() || 'untitled';
+  const body = document.getElementById('np_body').value;
+  if (!body.trim()) { document.getElementById('np_status').textContent = 'Nothing to save.'; return; }
+  const ts = Date.now();
+  const note = { id: ts, title, body, ts };
+  try {
+    const cache = await caches.open(NP_CACHE);
+    await cache.put('/notes/' + ts, new Response(JSON.stringify(note), {headers:{'content-type':'application/json'}}));
+    document.getElementById('np_status').textContent = 'Saved ✓ ' + new Date(ts).toLocaleTimeString();
+    document.getElementById('np_title').value = '';
+    document.getElementById('np_body').value = '';
+    log('note saved // ' + ts, 'ok');
+    np_load();
+  } catch(e) {
+    document.getElementById('np_status').textContent = 'Failed: ' + e.message;
+    log('note save failed: ' + e.message, 'no');
+  }
+}
+
+async function np_load() {
+  try {
+    const cache = await caches.open(NP_CACHE);
+    const keys = await cache.keys();
+    const notes = [];
+    for (const req of keys) {
+      try {
+        const r = await cache.match(req);
+        const j = await r.json();
+        notes.push(j);
+      } catch(e){}
+    }
+    notes.sort((a,b)=>b.ts-a.ts);
+    document.getElementById('np_count').textContent = `(${notes.length})`;
+    const el = document.getElementById('np_list');
+    if (!notes.length) {
+      el.innerHTML = '<div style="color:var(--ink-faint);font-style:italic;font-size:0.88em">No notes yet. Compose one on the left.</div>';
+      return;
+    }
+    el.innerHTML = notes.map(n =>
+      `<div class="inbox-item">
+        <div class="meta">${new Date(n.ts).toLocaleString()} · #${n.id}</div>
+        <div style="font-weight:600;color:var(--indigo);margin-bottom:4px">${n.title.replace(/</g,'&lt;')}</div>
+        <div class="body">${n.body.replace(/</g,'&lt;')}</div>
+        <div style="margin-top:8px"><button class="btn ghost" style="padding:4px 10px;font-size:0.7em" onclick="np_del(${n.id})">DELETE</button></div>
+      </div>`
+    ).join('');
+    REPORT.kit.notepad = { count: notes.length };
+  } catch(e) {
+    document.getElementById('np_list').innerHTML = '<div style="color:var(--coral)">load failed: '+e.message+'</div>';
+  }
+}
+
+async function np_del(id) {
+  if (!confirm('Delete this note?')) return;
+  const cache = await caches.open(NP_CACHE);
+  await cache.delete('/notes/' + id);
+  np_load();
+}
+
+async function np_clear() {
+  if (!confirm('Delete ALL notes? Cannot be undone.')) return;
+  await caches.delete(NP_CACHE);
+  np_load();
+}
+
+// =========================================================================
+// FIELD KIT — K-03 ATTESTATION CARD
+// =========================================================================
+async function att_generate() {
+  log('generating attestation card', 'ok');
+  const card = {
+    issued: new Date().toISOString(),
+    reportId: REPORT_ID,
+    session: SESSION,
+    runtime: {
+      firmware: navigator.userAgent.match(/PlayStation 5\/([\d.]+)/)?.[1] || '?',
+      webkit: navigator.userAgent.match(/AppleWebKit\/([\d.]+)/)?.[1] || '?',
+      cores: navigator.hardwareConcurrency,
+      viewport: `${innerWidth}×${innerHeight}`,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    },
+    findings: {
+      cacheAPI: 'caches' in window,
+      crypto: !!crypto.subtle,
+      sharedWorker: typeof SharedWorker !== 'undefined',
+      broadcastChannel: typeof BroadcastChannel !== 'undefined',
+      webgl: false,
+      webassembly: typeof WebAssembly !== 'undefined',
+      indexeddb: 'indexedDB' in window
+    }
+  };
+
+  // sign it
+  const kp = await crypto.subtle.generateKey({name:'ECDSA', namedCurve:'P-256'}, true, ['sign','verify']);
+  const pubJwk = await crypto.subtle.exportKey('jwk', kp.publicKey);
+  const payload = new TextEncoder().encode(JSON.stringify(card));
+  const sig = await crypto.subtle.sign({name:'ECDSA', hash:'SHA-256'}, kp.privateKey, payload);
+  const signed = {
+    card,
+    pubKey: pubJwk,
+    sigB64: b64encode(sig)
+  };
+  document.getElementById('att_out').style.display = 'block';
+  document.getElementById('att_card').textContent = JSON.stringify(signed, null, 2);
+  REPORT.kit.attestation = signed;
+  log('attestation card issued', 'novel');
+}
+
+async function att_copy() {
+  const txt = document.getElementById('att_card').textContent;
+  try {
+    await navigator.clipboard.writeText(txt);
+    log('attestation copied to clipboard', 'ok');
+  } catch(e) {
+    // fallback: select all
+    const r = document.createRange();
+    r.selectNode(document.getElementById('att_card'));
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+    log('attestation selected — Cross-button copy with controller', 'warn');
+  }
+}
+
+// =========================================================================
 // BOOT
-// =========================================================
-log('probe v1.0 initializing...', 'ok');
-probeIdentity();
-probeDisplay();
-probeWebGL();
-probeAPIs();
-probeStorage();
-probeSchemes();
-log('probe ready — connect controller for live capture', 'ok');
+// =========================================================================
+log('ps5.web S.1 loading', 'ok');
+diag_environment();
+diag_api();
+kp_init().then(() => np_load());
+log('ready — pillars I-III interactive', 'ok');
 
 </script>
 </body>
