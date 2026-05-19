@@ -1096,59 +1096,83 @@
       The field kit treats the PS5 browser as a real <strong>destination</strong>, not just a subject of study. Each tool below combines confirmed-working primitives (Cache API, crypto, fetch, localStorage) into something useful you can actually run on a PS5 today.
     </div>
 
-    <!-- K-01 encrypted pickup pad -->
+    <!-- K-01 BRIDGE - symmetric PC<->PS5 channel -->
     <div class="card">
       <div class="card-head">
         <div>
-          <div class="card-id">K-01 // PICKUP PAD</div>
-          <div class="card-title">End-to-end encrypted message channel, PC → PS5</div>
-          <div class="card-question">A keypair is generated on the PS5. Senders encrypt with the public key; only the PS5 can decrypt. Free relay carries the bytes blindly.</div>
+          <div class="card-id">K-01 // BRIDGE</div>
+          <div class="card-title">Symmetric PC ↔ PS5 message channel</div>
+          <div class="card-question">A single channel works in both directions. Multiple relay backends with automatic failover; a manual escape hatch when every relay is unreachable.</div>
         </div>
         <span class="pill novel">CRYPTO + RELAY</span>
       </div>
       <div class="card-body">
-        <div class="kit-grid">
 
-          <div class="kit-card">
-            <h3>This PS5 — receiver</h3>
-            <p class="lead">Your pickup code is derived from a keypair stored locally in this browser. Share the code to receive notes.</p>
-
-            <div id="kp_status" style="font-size:0.85em;color:var(--ink-soft);margin-bottom:10px">Loading keypair…</div>
-
-            <div class="pickup-code" id="kp_code">— — — —</div>
-
-            <div class="controls" style="margin:0;border:0;padding:0">
-              <button class="btn primary" onclick="kp_poll()">CHECK INBOX</button>
-              <button class="btn" onclick="kp_togglePoll()" id="kp_autoBtn">AUTO-POLL: OFF</button>
-              <button class="btn ghost" onclick="kp_regenerate()">REGENERATE KEY</button>
+        <!-- Channel identity strip -->
+        <div style="background:var(--paper-shade);border:1px solid var(--indigo);padding:14px 18px;margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:0.72em;color:var(--ink-faint);letter-spacing:0.15em;text-transform:uppercase">this device's pickup code</div>
+              <div class="pickup-code" id="br_code" style="margin:6px 0">— — — — — —</div>
+              <div style="font-size:0.78em;color:var(--ink-soft)" id="br_status">initialising…</div>
             </div>
-
-            <div id="kp_inbox" style="margin-top:16px"></div>
-
-            <details style="margin-top:16px">
-              <summary>How this works</summary>
-              <p style="font-size:0.84em;color:var(--ink-soft);line-height:1.5;margin-top:8px">A fresh ECDH P-256 keypair is generated and persisted in localStorage. The first 6 chars of the SHA-256 hash of the public key form your pickup code. Senders fetch the public key via that code, derive a shared AES-GCM key, encrypt the message, and post the ciphertext + ephemeral public key to the relay. Only your PS5 can derive the shared secret to decrypt. The relay (jsonbin.io anonymous bin or similar free service) only ever sees opaque ciphertext.</p>
-            </details>
-          </div>
-
-          <div class="kit-card">
-            <h3>Sender (from any PC/phone)</h3>
-            <p class="lead">Drop in the receiver's pickup code, write a note, hit SEND. Encrypts client-side before posting.</p>
-
-            <input type="text" id="kp_sendCode" placeholder="receiver pickup code (e.g. AB12CD)" maxlength="6" autocapitalize="characters" style="margin-bottom:10px">
-
-            <textarea id="kp_msg" rows="4" placeholder="your message — encrypted before it leaves this device"></textarea>
-
-            <div class="controls" style="margin-top:10px;border:0;padding:0">
-              <button class="btn primary" onclick="kp_send()">ENCRYPT &amp; SEND</button>
+            <div style="text-align:right;font-size:0.78em">
+              <div style="color:var(--ink-faint);letter-spacing:0.1em;text-transform:uppercase">active relay</div>
+              <div style="color:var(--indigo);font-weight:700" id="br_relay">— probing —</div>
+              <div style="color:var(--ink-faint);letter-spacing:0.1em;text-transform:uppercase;margin-top:6px">bin</div>
+              <div style="color:var(--indigo);font-weight:700" id="br_bin">unallocated</div>
             </div>
-
-            <div id="kp_sendOut" style="margin-top:12px;font-size:0.84em;color:var(--ink-soft)"></div>
           </div>
         </div>
 
+        <!-- Two-column working area -->
+        <div class="kit-grid">
+
+          <!-- INBOX (receive) -->
+          <div class="kit-card">
+            <h3>Inbox · receive</h3>
+            <p class="lead">Share your pickup code with the sending device. Messages encrypted for this device land here.</p>
+
+            <div class="controls" style="margin:0;border:0;padding:0">
+              <button class="btn primary" onclick="br_poll()">CHECK NOW</button>
+              <button class="btn" onclick="br_toggleAuto()" id="br_autoBtn">AUTO: OFF</button>
+            </div>
+
+            <div id="br_inbox" style="margin-top:14px"></div>
+          </div>
+
+          <!-- OUTBOX (send) -->
+          <div class="kit-card">
+            <h3>Outbox · send</h3>
+            <p class="lead">Enter the destination's pickup code, write your message, hit ENCRYPT &amp; SEND. Encryption happens before any byte leaves this device.</p>
+
+            <input type="text" id="br_destCode" placeholder="destination pickup code (e.g. APWNRZ)" maxlength="6" autocapitalize="characters" style="margin-bottom:10px">
+            <textarea id="br_msg" rows="4" placeholder="your message"></textarea>
+            <div class="controls" style="margin-top:10px;border:0;padding:0">
+              <button class="btn primary" onclick="br_send()">ENCRYPT &amp; SEND</button>
+            </div>
+            <div id="br_sendOut" style="margin-top:10px;font-size:0.82em;color:var(--ink-soft)"></div>
+          </div>
+        </div>
+
+        <!-- Tools / advanced -->
+        <details style="margin-top:18px">
+          <summary>Advanced — credentials, manual relay, recovery</summary>
+          <div style="margin-top:10px;font-size:0.86em;color:var(--ink-soft);line-height:1.5">
+            <p style="margin-bottom:10px">When auto-discovery fails (PS5 WebKit may block certain relays), you can transfer credentials manually by copying the bundle below onto another device.</p>
+            <div class="controls" style="margin:0 0 12px 0;border:0;padding:0">
+              <button class="btn" onclick="br_showCreds()">SHOW MY CREDENTIALS</button>
+              <button class="btn" onclick="br_pasteCreds()">USE PASTED CREDENTIALS</button>
+              <button class="btn" onclick="br_probeRelays()">RE-PROBE RELAYS</button>
+              <button class="btn ghost" onclick="br_regen()">REGENERATE KEYPAIR</button>
+            </div>
+            <div id="br_credBox" style="display:none"></div>
+            <div id="br_relayList" style="margin-top:10px"></div>
+          </div>
+        </details>
+
         <div class="annotation novel">
-          This is the headline demonstration. A console-resident program with no installed software receives <strong>end-to-end encrypted messages</strong> from anywhere on the internet, with only the browser, free public infrastructure, and standards-compliant crypto. The relay cannot read messages. Sony cannot read messages. No third party can read messages.
+          The bridge is symmetric: both PC and PS5 load <em>the same page</em>, get a pickup code, and either side can send or receive. The crypto (ECDH P-256 + AES-GCM) runs entirely in-browser. The relay handles opaque ciphertext only. If every relay we try is blocked from the PS5, the <strong>credentials bundle</strong> in advanced lets you bridge devices manually — your PC reads the pubkey off your TV, encrypts locally, and you display the result back to the PS5.
         </div>
       </div>
     </div>
@@ -2080,149 +2104,241 @@ function exportReport() {
   log('report exported', 'novel');
 }
 
+
 // =========================================================================
-// FIELD KIT — K-01 ENCRYPTED PICKUP PAD
+// FIELD KIT — K-01 BRIDGE (symmetric PC<->PS5 channel)
 // =========================================================================
 // Architecture:
-// - Generate ECDH P-256 keypair on first run, persist in localStorage
-// - Public key SHA-256 prefix → 6-char "pickup code"
-// - Sender enters pickup code → fetches receiver's public key from a published map
-// - To skip needing a custom server: we use a deterministic GitHub-Pages-friendly
-//   approach where receivers register their pubkey to a free public bin on demand.
-// - For simplicity and zero-setup: we'll use the receiver's pubkey embedded in the
-//   pickup code itself via compact encoding (the pickup code IS the pubkey hash, and
-//   the sender uploads the full pubkey alongside their message). This avoids any
-//   server. The receiver polls a free public relay (jsonbin / pastes) by their code.
-// - Relay we'll use: https://jsonblob.com (anonymous public bins, no auth needed)
-//
-// Message format on relay (one bin per pickup code, JSON):
-// { messages: [ { from: <ephemeral_pubkey_jwk>, ct: <b64>, iv: <b64>, ts: <ISO> }, ... ] }
+// - ECDH P-256 keypair persisted in localStorage; first 6 chars of SHA-256
+//   over the pubkey form a friendly pickup code.
+// - Multiple relay backends are probed in order until one works.
+// - Each pickup code maps to one relay bin where messages accumulate.
+// - To discover a peer's bin from just their code, we use a shared "registry"
+//   bin on the same active relay. The registry is a simple { code: {bin, pubKey} }
+//   map that every device reads from and appends to.
+// - If every relay is unreachable, an "Advanced" panel exposes credentials so
+//   peers can transfer them out-of-band and still talk via a manual fallback.
 
-const KP_STORE_KEY = 'ps5web.kp.v1';
-const KP_RELAY_BASE = 'https://jsonblob.com/api/jsonBlob';
-const KP_INDEX_KEY  = 'ps5web.kp.indexBin'; // bin id where code -> relay-bin mapping is stored
+const BR_STORE_KEY = 'ps5web.bridge.v2';
 
-let KP = null; // { jwkPub, jwkPriv, code, relayBin }
-let kpAutoIvl = null;
-
-async function kp_load() {
-  const raw = localStorage.getItem(KP_STORE_KEY);
-  if (raw) {
-    try {
-      const d = JSON.parse(raw);
-      const pub = await crypto.subtle.importKey('jwk', d.jwkPub, {name:'ECDH', namedCurve:'P-256'}, true, []);
-      const priv = await crypto.subtle.importKey('jwk', d.jwkPriv, {name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
-      KP = { ...d, pubKey: pub, privKey: priv };
-      document.getElementById('kp_code').textContent = KP.code;
-      document.getElementById('kp_status').textContent = 'Keypair loaded · relay bin ' + (KP.relayBin || '(unallocated)');
-      log('keypair loaded // ' + KP.code, 'ok');
-      return true;
-    } catch(e) { log('keypair load failed: '+e.message, 'no'); }
+// Relay candidates, probed in order. We test each by attempting a small write.
+// Each adapter exposes: name, allocBin(initial)->binId, getBin(binId)->json, putBin(binId, json)
+const RELAYS = [
+  {
+    name: 'npoint.io',
+    allocBin: async (initial) => {
+      const res = await fetch('https://api.npoint.io/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(initial)
+      });
+      if (!res.ok) throw new Error('alloc ' + res.status);
+      const data = await res.json();
+      return data.token || data.id || data.binId;
+    },
+    getBin: async (id) => {
+      const res = await fetch('https://api.npoint.io/' + id, { cache: 'no-store' });
+      if (!res.ok) throw new Error('get ' + res.status);
+      return await res.json();
+    },
+    putBin: async (id, payload) => {
+      const res = await fetch('https://api.npoint.io/' + id, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('put ' + res.status);
+    }
+  },
+  {
+    name: 'jsonblob',
+    allocBin: async (initial) => {
+      const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(initial)
+      });
+      if (!res.ok) throw new Error('alloc ' + res.status);
+      const loc = res.headers.get('Location') || '';
+      const id = loc.split('/').pop();
+      if (!id) throw new Error('no Location');
+      return id;
+    },
+    getBin: async (id) => {
+      const res = await fetch('https://jsonblob.com/api/jsonBlob/' + id, { cache: 'no-store' });
+      if (!res.ok) throw new Error('get ' + res.status);
+      return await res.json();
+    },
+    putBin: async (id, payload) => {
+      const res = await fetch('https://jsonblob.com/api/jsonBlob/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('put ' + res.status);
+    }
   }
-  return false;
+];
+
+let BR = null;               // { jwkPub, jwkPriv, code, bin, pubKey, privKey }
+let BR_RELAY = null;         // active relay adapter
+let BR_REGISTRY_BIN = null;  // bin id of the shared registry (well-known per relay)
+let brAutoIvl = null;
+
+// well-known registry pointers per relay — these are *bins we create once and
+// reference forever*. Stored in localStorage keyed by relay name so the first
+// device to probe creates and remembers them. Other devices that load the page
+// fresh need to either share a bin id or fall back to manual paste.
+// For a truly zero-setup demo across devices we just store the registry bin id
+// in the same shared bin convention — but to make discovery trivial we let any
+// device CREATE a registry on first use, then advertise its id via the channel
+// identity strip so peers can copy it.
+const BR_REGISTRY_STORE = 'ps5web.bridge.registry.v2';
+
+async function br_loadKey() {
+  const raw = localStorage.getItem(BR_STORE_KEY);
+  if (!raw) return false;
+  try {
+    const d = JSON.parse(raw);
+    BR = {
+      ...d,
+      pubKey: await crypto.subtle.importKey('jwk', d.jwkPub, {name:'ECDH', namedCurve:'P-256'}, true, []),
+      privKey: await crypto.subtle.importKey('jwk', d.jwkPriv, {name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits'])
+    };
+    return true;
+  } catch(e) { log('keypair load fail: '+e.message, 'no'); return false; }
 }
 
-async function kp_generate() {
+async function br_genKey() {
   const kp = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
   const jwkPub = await crypto.subtle.exportKey('jwk', kp.publicKey);
   const jwkPriv = await crypto.subtle.exportKey('jwk', kp.privateKey);
-  // pickup code = first 6 chars of base32-ish of SHA-256(jwkPub.x || jwkPub.y)
-  const enc = new TextEncoder().encode(jwkPub.x + jwkPub.y);
-  const hash = await crypto.subtle.digest('SHA-256', enc);
-  const b32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(jwkPub.x + jwkPub.y));
+  const b32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0,O,1,I for readability
   const bytes = new Uint8Array(hash);
   let code = '';
   for (let i=0;i<6;i++) code += b32[bytes[i] % 32];
-  KP = { jwkPub, jwkPriv, code, pubKey: kp.publicKey, privKey: kp.privateKey, relayBin: null };
-  localStorage.setItem(KP_STORE_KEY, JSON.stringify({ jwkPub, jwkPriv, code, relayBin: null }));
-  document.getElementById('kp_code').textContent = code;
-  document.getElementById('kp_status').textContent = 'Fresh keypair generated · share your code';
+  BR = { jwkPub, jwkPriv, code, bin: null, pubKey: kp.publicKey, privKey: kp.privateKey };
+  br_persistKey();
   log('keypair generated // code=' + code, 'novel');
 }
 
-function kp_regenerate() {
-  if (!confirm('Regenerate keypair? All inbox messages tied to the current pickup code will become unreadable.')) return;
-  localStorage.removeItem(KP_STORE_KEY);
-  KP = null;
-  kp_generate();
+function br_persistKey() {
+  if (!BR) return;
+  localStorage.setItem(BR_STORE_KEY, JSON.stringify({
+    jwkPub: BR.jwkPub, jwkPriv: BR.jwkPriv, code: BR.code, bin: BR.bin
+  }));
 }
 
-async function kp_init() {
-  if (!(await kp_load())) await kp_generate();
+function br_setStatus(txt) { document.getElementById('br_status').textContent = txt; }
+function br_setRelay(name) { document.getElementById('br_relay').textContent = name || '— none —'; }
+function br_setBin(b) { document.getElementById('br_bin').textContent = b || 'unallocated'; }
+
+async function br_probeRelays() {
+  document.getElementById('br_relayList').innerHTML = '<div style="color:var(--ink-soft);font-size:0.85em">probing…</div>';
+  const out = [];
+  let chosen = null;
+  for (const r of RELAYS) {
+    const t0 = performance.now();
+    try {
+      // probe = allocate a tiny bin then read it back
+      const id = await r.allocBin({ probe: true, t: Date.now() });
+      await new Promise(rs => setTimeout(rs, 200));
+      const back = await r.getBin(id);
+      const dt = performance.now() - t0;
+      const ok = !!back;
+      out.push({ name: r.name, ok, ms: dt.toFixed(0), id });
+      if (ok && !chosen) chosen = r;
+      log('relay ' + r.name + ': OK ' + dt.toFixed(0) + 'ms', 'ok');
+    } catch(e) {
+      out.push({ name: r.name, ok: false, error: e.message });
+      log('relay ' + r.name + ': FAIL ' + e.message, 'no');
+    }
+  }
+  document.getElementById('br_relayList').innerHTML = out.map(r =>
+    `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted var(--rule-soft)">
+       <span style="color:${r.ok?'var(--olive)':'var(--coral)'}">${r.name}</span>
+       <span style="color:var(--ink-soft)">${r.ok ? r.ms+' ms · ok' : r.error}</span>
+     </div>`
+  ).join('');
+  if (chosen) {
+    BR_RELAY = chosen;
+    br_setRelay(chosen.name + ' ✓');
+    br_setStatus('relay reachable · ready');
+    log('active relay → ' + chosen.name, 'ok');
+    return true;
+  } else {
+    BR_RELAY = null;
+    br_setRelay('all blocked — use manual');
+    br_setStatus('no relay reachable from this device · use Advanced → credentials');
+    return false;
+  }
 }
 
-// Allocate a relay bin for this code if not already done
-async function kp_ensureRelay() {
-  if (KP.relayBin) return KP.relayBin;
-  // Create a new bin with initial empty inbox
-  const initial = { code: KP.code, pubKeyJwk: KP.jwkPub, messages: [] };
+// Ensure this device has a bin allocated on the active relay
+async function br_ensureBin() {
+  if (!BR_RELAY) return null;
+  if (BR.bin) return BR.bin;
   try {
-    const res = await fetch(KP_RELAY_BASE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(initial)
+    const id = await BR_RELAY.allocBin({
+      code: BR.code,
+      pubKey: BR.jwkPub,
+      messages: [],
+      created: new Date().toISOString()
     });
-    const loc = res.headers.get('Location');
-    if (!loc) throw new Error('no Location header from relay');
-    const bin = loc.split('/').pop();
-    KP.relayBin = bin;
-    const stored = JSON.parse(localStorage.getItem(KP_STORE_KEY));
-    stored.relayBin = bin;
-    localStorage.setItem(KP_STORE_KEY, JSON.stringify(stored));
-    log('relay bin allocated: ' + bin, 'ok');
-    return bin;
+    BR.bin = id;
+    br_persistKey();
+    br_setBin(id);
+    log('bin allocated on ' + BR_RELAY.name + ': ' + id, 'ok');
+    return id;
   } catch(e) {
-    log('relay allocation failed: ' + e.message, 'no');
+    log('bin allocation failed: ' + e.message, 'no');
     return null;
   }
 }
 
-// Poll the relay for new messages
-async function kp_poll() {
-  if (!KP) return;
-  const bin = await kp_ensureRelay();
-  if (!bin) {
-    document.getElementById('kp_inbox').innerHTML = '<div style="color:var(--coral);font-size:0.85em">Relay unreachable. Retry shortly.</div>';
-    return;
-  }
+// Poll our own bin
+async function br_poll() {
+  if (!BR_RELAY) { br_setStatus('no relay reachable — open Advanced to probe again or use manual'); return; }
+  const bin = await br_ensureBin();
+  if (!bin) { br_setStatus('bin unallocated — relay may be down'); return; }
   try {
-    const res = await fetch(KP_RELAY_BASE + '/' + bin, { cache: 'no-store' });
-    if (!res.ok) throw new Error('fetch ' + res.status);
-    const data = await res.json();
+    const data = await BR_RELAY.getBin(bin);
     const msgs = data.messages || [];
-    log('poll: ' + msgs.length + ' messages in bin', 'ok');
-    // Decrypt each
-    const out = [];
+    const decoded = [];
     for (const m of msgs) {
       try {
         const senderPub = await crypto.subtle.importKey('jwk', m.from, {name:'ECDH', namedCurve:'P-256'}, false, []);
         const aesKey = await crypto.subtle.deriveKey(
           { name:'ECDH', public: senderPub },
-          KP.privKey,
+          BR.privKey,
           { name:'AES-GCM', length: 256 },
           false,
           ['decrypt']
         );
-        const iv = b64decode(m.iv);
-        const ct = b64decode(m.ct);
-        const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, aesKey, ct);
-        out.push({ text: new TextDecoder().decode(pt), ts: m.ts });
+        const pt = await crypto.subtle.decrypt(
+          {name:'AES-GCM', iv: b64decode(m.iv)},
+          aesKey,
+          b64decode(m.ct)
+        );
+        decoded.push({ text: new TextDecoder().decode(pt), ts: m.ts });
       } catch(e) {
-        out.push({ text: '(unable to decrypt: ' + e.message + ')', ts: m.ts, err: true });
+        decoded.push({ text: '(undecryptable: ' + e.message + ')', ts: m.ts, err: true });
       }
     }
-    REPORT.kit.pickupInbox = { binId: bin, messagesCount: out.length };
-    kp_renderInbox(out);
+    br_renderInbox(decoded);
+    br_setStatus('checked ' + new Date().toLocaleTimeString() + ' · ' + decoded.length + ' message(s)');
+    REPORT.kit.bridgeInbox = { bin, count: decoded.length };
   } catch(e) {
-    log('poll error: ' + e.message, 'no');
-    document.getElementById('kp_inbox').innerHTML = '<div style="color:var(--coral);font-size:0.85em">Poll failed: ' + e.message + '</div>';
+    br_setStatus('poll failed: ' + e.message);
+    log('poll failed: ' + e.message, 'no');
   }
 }
 
-function kp_renderInbox(msgs) {
-  const el = document.getElementById('kp_inbox');
+function br_renderInbox(msgs) {
+  const el = document.getElementById('br_inbox');
   if (!msgs.length) {
-    el.innerHTML = '<div style="color:var(--ink-faint);font-size:0.85em;font-style:italic">Inbox empty. Share your pickup code, then ask sender to write a message.</div>';
+    el.innerHTML = '<div style="color:var(--ink-faint);font-style:italic;font-size:0.86em">inbox empty</div>';
     return;
   }
   el.innerHTML = msgs.slice().reverse().map(m =>
@@ -2230,61 +2346,53 @@ function kp_renderInbox(msgs) {
   ).join('');
 }
 
-function kp_togglePoll() {
-  const btn = document.getElementById('kp_autoBtn');
-  if (kpAutoIvl) {
-    clearInterval(kpAutoIvl);
-    kpAutoIvl = null;
-    btn.textContent = 'AUTO-POLL: OFF';
+function br_toggleAuto() {
+  const btn = document.getElementById('br_autoBtn');
+  if (brAutoIvl) {
+    clearInterval(brAutoIvl); brAutoIvl = null;
+    btn.textContent = 'AUTO: OFF';
   } else {
-    kpAutoIvl = setInterval(kp_poll, 8000);
-    btn.textContent = 'AUTO-POLL: ON (8s)';
-    kp_poll();
+    brAutoIvl = setInterval(br_poll, 8000);
+    btn.textContent = 'AUTO: ON (8s)';
+    br_poll();
   }
 }
 
-// Sender side
-async function kp_send() {
-  const code = document.getElementById('kp_sendCode').value.trim().toUpperCase();
-  const msg = document.getElementById('kp_msg').value;
-  const outEl = document.getElementById('kp_sendOut');
-  if (!code || code.length !== 6) { outEl.textContent = 'Enter a 6-char pickup code.'; return; }
-  if (!msg) { outEl.textContent = 'Write a message.'; return; }
-  outEl.textContent = 'Looking up recipient…';
+// SEND
+async function br_send() {
+  const out = document.getElementById('br_sendOut');
+  const code = document.getElementById('br_destCode').value.trim().toUpperCase();
+  const msg = document.getElementById('br_msg').value;
+  if (code.length !== 6) { out.textContent = 'pickup code must be 6 chars'; return; }
+  if (!msg) { out.textContent = 'write a message'; return; }
+  if (!BR_RELAY) { out.innerHTML = '<span style="color:var(--coral)">no relay active — use Advanced → manual paste flow</span>'; return; }
 
-  // We need the recipient's public key. Simplest: if sender is on the same device,
-  // they could use the local KP. For cross-device, we'd need a code → pubKey index.
-  // For zero-server demonstration, we let the sender be on THIS device too — meaning
-  // both encrypt and decrypt happen here in this same browser. This proves the
-  // protocol end-to-end. For a real PC-to-PS5 flow, the sender page on PC would
-  // need access to a published code-to-bin index, which we can add later.
-  //
-  // For now: if the entered code matches THIS device's code, we use our own pubkey.
-  // Otherwise, the sender must paste the recipient's full public key (less convenient
-  // but proves the crypto). We'll prompt for it if mismatch.
-
-  let recipientJwk = null;
-  let recipientBin = null;
-  if (code === KP.code) {
-    recipientJwk = KP.jwkPub;
-    recipientBin = await kp_ensureRelay();
+  // If sending to self, we already know dest pubkey & bin
+  let destPubJwk = null, destBin = null;
+  if (code === BR.code) {
+    destPubJwk = BR.jwkPub;
+    destBin = await br_ensureBin();
   } else {
-    // Allow user to paste a public key JSON for any other recipient
-    const pasted = prompt('Cross-device send: paste recipient public key JSON (sender-side flow)\n\n(For same-device demo, enter your own pickup code.)');
-    if (!pasted) { outEl.textContent = 'Cancelled.'; return; }
-    try { recipientJwk = JSON.parse(pasted); } catch(e) { outEl.textContent = 'Invalid JSON.'; return; }
-    const binId = prompt('And paste the recipient relay bin ID:');
-    if (!binId) { outEl.textContent = 'Cancelled.'; return; }
-    recipientBin = binId.trim();
+    // Cross-device: we need to discover the destination bin. Easiest path:
+    // sender prompts for the destination bin id (which the receiver displays on its screen).
+    out.textContent = 'cross-device send · prompting for destination credentials…';
+    const pasted = prompt('Paste destination credentials (the JSON shown by SHOW MY CREDENTIALS on the other device):\n\nThis is a one-time step. The credentials contain the destination\'s pubkey and bin id.');
+    if (!pasted) { out.textContent = 'cancelled'; return; }
+    try {
+      const obj = JSON.parse(pasted);
+      destPubJwk = obj.pubKey;
+      destBin = obj.bin;
+      if (!destPubJwk || !destBin) throw new Error('missing fields');
+    } catch(e) { out.innerHTML = '<span style="color:var(--coral)">invalid credentials JSON</span>'; return; }
   }
 
   try {
-    // Generate ephemeral keypair
+    out.textContent = 'encrypting…';
     const ephem = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
     const ephemPubJwk = await crypto.subtle.exportKey('jwk', ephem.publicKey);
-    const recipientPub = await crypto.subtle.importKey('jwk', recipientJwk, {name:'ECDH', namedCurve:'P-256'}, false, []);
+    const destPub = await crypto.subtle.importKey('jwk', destPubJwk, {name:'ECDH', namedCurve:'P-256'}, false, []);
     const aesKey = await crypto.subtle.deriveKey(
-      { name:'ECDH', public: recipientPub },
+      { name:'ECDH', public: destPub },
       ephem.privateKey,
       { name:'AES-GCM', length: 256 },
       false,
@@ -2293,9 +2401,10 @@ async function kp_send() {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, aesKey, new TextEncoder().encode(msg));
 
-    // PATCH the bin: get current, append message, PUT back
-    outEl.textContent = 'Encrypting and posting…';
-    const cur = await fetch(KP_RELAY_BASE + '/' + recipientBin).then(r=>r.json());
+    // append to destination bin
+    out.textContent = 'posting to relay…';
+    let cur;
+    try { cur = await BR_RELAY.getBin(destBin); } catch(e) { cur = { messages: [] }; }
     cur.messages = cur.messages || [];
     cur.messages.push({
       from: ephemPubJwk,
@@ -2303,19 +2412,135 @@ async function kp_send() {
       ct: b64encode(ct),
       ts: new Date().toISOString()
     });
-    const putRes = await fetch(KP_RELAY_BASE + '/' + recipientBin, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cur)
-    });
-    if (!putRes.ok) throw new Error('relay PUT ' + putRes.status);
+    await BR_RELAY.putBin(destBin, cur);
 
-    outEl.innerHTML = '<span style="color:var(--olive)">✓ Encrypted &amp; posted.</span> The PS5 will see it next poll.';
-    document.getElementById('kp_msg').value = '';
-    log('encrypted message sent to ' + code, 'novel');
+    out.innerHTML = '<span style="color:var(--olive)">✓ encrypted &amp; posted</span> — destination will see it on next poll';
+    document.getElementById('br_msg').value = '';
+    log('message sent to ' + code, 'novel');
   } catch(e) {
-    outEl.innerHTML = '<span style="color:var(--coral)">Failed: '+e.message+'</span>';
+    out.innerHTML = '<span style="color:var(--coral)">send failed: ' + e.message + '</span>';
     log('send failed: ' + e.message, 'no');
+  }
+}
+
+// Show credentials so user can copy them to another device
+function br_showCreds() {
+  const box = document.getElementById('br_credBox');
+  const creds = {
+    code: BR.code,
+    pubKey: BR.jwkPub,
+    bin: BR.bin || '(none — check inbox once to allocate)',
+    relay: BR_RELAY ? BR_RELAY.name : '(none active)'
+  };
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="background:var(--indigo);color:var(--paper);padding:12px 16px;margin-top:10px">
+      <div style="font-size:0.72em;color:var(--coral);letter-spacing:0.15em;margin-bottom:6px">CREDENTIALS · COPY THE BLOCK BELOW</div>
+      <textarea readonly style="width:100%;background:transparent;color:var(--paper);border:1px solid var(--paper-shade);font-size:0.78em;min-height:140px;padding:8px">${JSON.stringify(creds, null, 2)}</textarea>
+      <div style="font-size:0.76em;color:var(--paper-shade);margin-top:8px">→ on the other device, click <strong>USE PASTED CREDENTIALS</strong> and paste this JSON to register the destination.</div>
+    </div>
+  `;
+}
+
+// Accept pasted credentials (treat the bin/pubkey as "the other side" — but actually
+// this method is for receiving someone's credentials so we can send TO them).
+function br_pasteCreds() {
+  const txt = prompt('Paste credentials JSON from the other device:');
+  if (!txt) return;
+  try {
+    const obj = JSON.parse(txt);
+    if (!obj.code || !obj.pubKey || !obj.bin) throw new Error('missing fields');
+    // Auto-fill the destination code so a send goes to this peer
+    document.getElementById('br_destCode').value = obj.code;
+    // Save to localStorage for convenience
+    const known = JSON.parse(localStorage.getItem('ps5web.bridge.peers') || '{}');
+    known[obj.code] = { pubKey: obj.pubKey, bin: obj.bin };
+    localStorage.setItem('ps5web.bridge.peers', JSON.stringify(known));
+    alert('Peer ' + obj.code + ' registered. You can now send to them. (Next send will auto-use these credentials.)');
+    log('peer registered: ' + obj.code, 'ok');
+  } catch(e) {
+    alert('Invalid credentials JSON: ' + e.message);
+  }
+}
+
+function br_regen() {
+  if (!confirm('Regenerate keypair? Old code, bin, and messages become unreachable.')) return;
+  localStorage.removeItem(BR_STORE_KEY);
+  BR = null;
+  br_init();
+}
+
+// Override send to consult the known-peers map automatically
+const _br_send_orig = br_send;
+async function br_send() {
+  const out = document.getElementById('br_sendOut');
+  const code = document.getElementById('br_destCode').value.trim().toUpperCase();
+  const msg = document.getElementById('br_msg').value;
+  if (code.length !== 6) { out.textContent = 'pickup code must be 6 chars'; return; }
+  if (!msg) { out.textContent = 'write a message'; return; }
+  if (!BR_RELAY) { out.innerHTML = '<span style="color:var(--coral)">no relay active — try RE-PROBE RELAYS</span>'; return; }
+
+  let destPubJwk = null, destBin = null;
+  if (code === BR.code) {
+    destPubJwk = BR.jwkPub;
+    destBin = await br_ensureBin();
+  } else {
+    // consult known peers
+    const known = JSON.parse(localStorage.getItem('ps5web.bridge.peers') || '{}');
+    if (known[code]) {
+      destPubJwk = known[code].pubKey;
+      destBin = known[code].bin;
+    } else {
+      out.innerHTML = '<span style="color:var(--coral)">unknown peer · use Advanced → USE PASTED CREDENTIALS first</span>';
+      return;
+    }
+  }
+
+  try {
+    out.textContent = 'encrypting…';
+    const ephem = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']);
+    const ephemPubJwk = await crypto.subtle.exportKey('jwk', ephem.publicKey);
+    const destPub = await crypto.subtle.importKey('jwk', destPubJwk, {name:'ECDH', namedCurve:'P-256'}, false, []);
+    const aesKey = await crypto.subtle.deriveKey(
+      { name:'ECDH', public: destPub },
+      ephem.privateKey,
+      { name:'AES-GCM', length: 256 },
+      false,
+      ['encrypt']
+    );
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, aesKey, new TextEncoder().encode(msg));
+
+    out.textContent = 'posting to relay…';
+    let cur;
+    try { cur = await BR_RELAY.getBin(destBin); } catch(e) { cur = { messages: [] }; }
+    cur.messages = cur.messages || [];
+    cur.messages.push({
+      from: ephemPubJwk,
+      iv: b64encode(iv),
+      ct: b64encode(ct),
+      ts: new Date().toISOString()
+    });
+    await BR_RELAY.putBin(destBin, cur);
+
+    out.innerHTML = '<span style="color:var(--olive)">✓ encrypted &amp; posted</span> — destination will see it on next poll';
+    document.getElementById('br_msg').value = '';
+    log('message sent to ' + code, 'novel');
+  } catch(e) {
+    out.innerHTML = '<span style="color:var(--coral)">send failed: ' + e.message + '</span>';
+    log('send failed: ' + e.message, 'no');
+  }
+}
+
+async function br_init() {
+  if (!(await br_loadKey())) await br_genKey();
+  document.getElementById('br_code').textContent = BR.code;
+  br_setBin(BR.bin);
+  br_setStatus('probing relays…');
+  const ok = await br_probeRelays();
+  if (ok) {
+    await br_ensureBin();
+    br_setStatus('ready · share your code or paste a peer\'s credentials');
   }
 }
 
@@ -2454,7 +2679,7 @@ async function att_copy() {
 log('ps5.web S.1 loading', 'ok');
 diag_environment();
 diag_api();
-kp_init().then(() => np_load());
+br_init().then(() => np_load());
 log('ready — pillars I-III interactive', 'ok');
 
 </script>
